@@ -1,0 +1,11 @@
+# build artifacts
+build/
+*.exe
+*.o
+.exe
+
+# VS Code
+.vscode/
+
+# MSYS2 / temp
+*.log
