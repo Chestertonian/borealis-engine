@@ -11,6 +11,7 @@ bool is_black_piece(char piece);
 bool is_friendly(char piece, Color side);
 bool is_enemy(char piece, Color side);
 bool is_empty(char piece);
+bool is_square_attacked(const GameState& state, int square, Color by_color);
 
 // Piece-specific generators (pseudo-legal)
 std::vector<Move> generate_knight_moves(const GameState& state, int from_square);
