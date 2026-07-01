@@ -13,7 +13,7 @@ If someone chooses to disregard this and disrespect those around them (vandalism
 
 This isn't legal advice, just simple guidelines for contributing to a project.
 
-- Chestertonian
+— Chestertonian
 
 ---
 
