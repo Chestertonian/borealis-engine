@@ -50,13 +50,28 @@ void print_gamestate(const GameState &state)
 GameState apply_move(GameState state, const Move &move)
 {
     // state is already a copy — mutate it directly
-    // Pseudocode:
-    // Get piece on move.from
-    // Move it to move.to
-    // Update side to move
-    // Update from square to null
-    // Half-move counter, en passant, castling: later
 
+    if (move.type == MoveType::EnPassant)
+    {
+        int direction;
+
+        if (state.side_to_move == Color::White)
+        {
+            direction = -1;
+        }
+        else
+        {
+            direction = 1;
+        }
+        state.side_to_move = (state.side_to_move == Color::White)
+                                 ? Color::Black
+                                 : Color::White;
+
+        state.board[move.to - (direction*8)] = '.';
+        state.board[move.to] = state.board[move.from];
+        state.board[move.from] = '.';
+        return state;
+    }
     state.side_to_move = (state.side_to_move == Color::White)
                              ? Color::Black
                              : Color::White;
@@ -67,29 +82,38 @@ GameState apply_move(GameState state, const Move &move)
     return state;
 }
 
-
-GameStatus get_game_status(const GameState& state) {
-    if (generate_all_moves(state).empty()) {
+GameStatus get_game_status(const GameState &state)
+{
+    if (generate_all_moves(state).empty())
+    {
         Color attacker = (state.side_to_move == Color::White) ? Color::Black : Color::White;
-        if (is_square_attacked(state, find_king_square(state, state.side_to_move), attacker)) {
+        if (is_square_attacked(state, find_king_square(state, state.side_to_move), attacker))
+        {
             return GameStatus::CHECKMATE;
         }
 
-        else {
+        else
+        {
             return GameStatus::STALEMATE;
         }
     }
-    
-    else {
+
+    else
+    {
         return GameStatus::ONGOING;
     }
 }
 
-std::string game_status_to_string(GameStatus status) {
-    switch (status) {
-        case GameStatus::ONGOING:   return "Ongoing\n";
-        case GameStatus::CHECKMATE: return "Checkmate\n";
-        case GameStatus::STALEMATE: return "Stalemate\n";
+std::string game_status_to_string(GameStatus status)
+{
+    switch (status)
+    {
+    case GameStatus::ONGOING:
+        return "Ongoing\n";
+    case GameStatus::CHECKMATE:
+        return "Checkmate\n";
+    case GameStatus::STALEMATE:
+        return "Stalemate\n";
     }
     return "Unknown"; // safety net, shouldn't be reached
 }

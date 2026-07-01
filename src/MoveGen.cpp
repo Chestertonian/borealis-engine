@@ -247,16 +247,22 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 
     int direction;
     int starting_row;
+    int final_row;
+    int en_passant_row;
 
     if (state.side_to_move == Color::White)
     {
         direction = -1;
         starting_row = 6;
+        final_row = 1;
+        en_passant_row = 3;
     }
     else
     {
         direction = 1;
         starting_row = 1;
+        final_row = 6;
+        en_passant_row = 4;
     }
 
     std::vector<Move> moves;
@@ -284,7 +290,15 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
         }
 
         // construct new move
-        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+        if (row == final_row)
+        {
+            add_pawn_move(moves, from_square, to_square, true);
+        }
+
+        if (row != final_row)
+        {
+            add_pawn_move(moves, from_square, to_square, false);
+        }
     }
 
     // initial two-space push
@@ -311,6 +325,7 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
         }
     }
 
+    // Captures (diagonal, obviously)
     int new_row = row + direction;
     int new_column = column - 1;
 
@@ -321,7 +336,15 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 
         if (is_enemy(target, state.side_to_move))
         {
-            moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+            if (row == final_row)
+            {
+                add_pawn_move(moves, from_square, to_square, true);
+            }
+
+            if (row != final_row)
+            {
+                add_pawn_move(moves, from_square, to_square, false);
+            }
         }
     }
 
@@ -334,7 +357,45 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 
         if (is_enemy(target, state.side_to_move))
         {
-            moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+            if (row == final_row)
+            {
+                add_pawn_move(moves, from_square, to_square, true);
+            }
+
+            if (row != final_row)
+            {
+                add_pawn_move(moves, from_square, to_square, false);
+            }
+        }
+    }
+
+    if (state.en_passant_square != -1)
+    {
+        if (row == en_passant_row)
+        {
+            int new_row = row + direction;
+
+            // left diagonal
+            int new_column = column - 1;
+            if (new_column >= 0)
+            {
+                int to_square = new_row * 8 + new_column;
+                if (to_square == state.en_passant_square)
+                {
+                    moves.push_back(Move{from_square, to_square, MoveType::EnPassant, PieceType::None});
+                }
+            }
+
+            // right diagonal
+            new_column = column + 1;
+            if (new_column <= 7)
+            {
+                int to_square = new_row * 8 + new_column;
+                if (to_square == state.en_passant_square)
+                {
+                    moves.push_back(Move{from_square, to_square, MoveType::EnPassant, PieceType::None});
+                }
+            }
         }
     }
 
@@ -615,4 +676,19 @@ int find_king_square(const GameState &state, Color king_color)
     }
 
     return king_location;
+}
+
+void add_pawn_move(std::vector<Move> &moves, int from, int to, bool is_promotion)
+{
+    if (is_promotion)
+    {
+        moves.push_back(Move{from, to, MoveType::Promotion, PieceType::Queen});
+        moves.push_back(Move{from, to, MoveType::Promotion, PieceType::Rook});
+        moves.push_back(Move{from, to, MoveType::Promotion, PieceType::Bishop});
+        moves.push_back(Move{from, to, MoveType::Promotion, PieceType::Knight});
+    }
+    else
+    {
+        moves.push_back(Move{from, to, MoveType::Normal, PieceType::None});
+    }
 }

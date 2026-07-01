@@ -13,6 +13,7 @@ bool is_enemy(char piece, Color side);
 bool is_empty(char piece);
 bool is_square_attacked(const GameState& state, int square, Color by_color);
 int  find_king_square(const GameState& state, Color king_color);
+void add_pawn_move(std::vector<Move>& moves, int from, int to, bool is_promotion);
 
 // Piece-specific generators (pseudo-legal)
 std::vector<Move> generate_knight_moves(const GameState& state, int from_square);
