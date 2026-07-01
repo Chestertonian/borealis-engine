@@ -34,7 +34,7 @@ std::vector<Move> generate_knight_moves(const GameState& state, int from_square)
         }    
 
         // is own piece?
-        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None}); }
 }
 
 // helpers

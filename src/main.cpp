@@ -2,14 +2,18 @@
 #include <iostream>
 #include "GameState.h"
 #include "Move.h"
+#include "MoveGen.h"
 
 int main() {
     GameState state;
     setup_starting_gamestate(state);
     print_gamestate(state);
 
-    Move test_move{52, 36, MoveType::DoublePawnPush, PieceType::Pawn};
-    print_move(test_move);
+    std::vector<Move> knight_moves = generate_knight_moves(state, 62);
+    for (const Move& m : knight_moves) {
+        print_move(m);
+    }
+
 
     // Test square_to_coordinate
     // std::cout << "Square 0:  " << square_to_coordinate(0) << '\n';  // a8
