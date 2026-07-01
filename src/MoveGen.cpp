@@ -1,5 +1,6 @@
 #include "MoveGen.h"
 #include <cctype>
+#include "GameState.h"
 
 std::vector<Move> generate_queen_moves(const GameState &state, int from_square)
 {
@@ -341,7 +342,7 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 }
 
 // all pseudo-legal moves
-std::vector<Move> generate_all_moves(const GameState &state)
+std::vector<Move> generate_pseudolegal_moves(const GameState &state)
 {
     std::vector<Move> moves;
 
@@ -394,6 +395,24 @@ std::vector<Move> generate_all_moves(const GameState &state)
     return moves;
 }
 
+std::vector<Move> generate_all_moves(const GameState &state)
+{
+    std::vector<Move> pseudolegals = generate_pseudolegal_moves(state);
+    std::vector<Move> legal_moves;
+
+    for (const Move &move : pseudolegals)
+    {
+        GameState test_state = apply_move(state, move);
+        bool unsafe = is_square_attacked(test_state, find_king_square(test_state, state.side_to_move), test_state.side_to_move);
+        if (!unsafe)
+        {
+            legal_moves.push_back(move);
+        }
+    }
+
+    return legal_moves;
+}
+
 // helpers
 
 bool is_white_piece(char piece)
@@ -421,28 +440,31 @@ bool is_empty(char piece)
     return piece == '.';
 }
 
-bool is_square_attacked(const GameState& state, int square, Color by_color) {
+bool is_square_attacked(const GameState &state, int square, Color by_color)
+{
     int row = square / 8;
     int column = square % 8;
 
     // --- knight attacks ---
     int knight_offsets[8][2] = {
-        {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-        {1, -2}, {1, 2}, {2, -1}, {2, 1}
-    };
+        {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}};
 
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; ++i)
+    {
         int r = row + knight_offsets[i][0];
         int c = column + knight_offsets[i][1];
 
-        if (r < 0 || r > 7 || c < 0 || c > 7) {
+        if (r < 0 || r > 7 || c < 0 || c > 7)
+        {
             continue;
         }
 
         char target = state.board[r * 8 + c];
-        if (std::toupper(target) == 'N') {
+        if (std::toupper(target) == 'N')
+        {
             if ((by_color == Color::White && is_white_piece(target)) ||
-                (by_color == Color::Black && is_black_piece(target))) {
+                (by_color == Color::Black && is_black_piece(target)))
+            {
                 return true;
             }
         }
@@ -450,23 +472,24 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
 
     // --- king attacks (one square in every direction) ---
     int king_offsets[8][2] = {
-        {-1, -1}, {-1, 0}, {-1, 1},
-        {0, -1},           {0, 1},
-        {1, -1},  {1, 0},  {1, 1}
-    };
+        {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; ++i)
+    {
         int r = row + king_offsets[i][0];
         int c = column + king_offsets[i][1];
 
-        if (r < 0 || r > 7 || c < 0 || c > 7) {
+        if (r < 0 || r > 7 || c < 0 || c > 7)
+        {
             continue;
         }
 
         char target = state.board[r * 8 + c];
-        if (std::toupper(target) == 'K') {
+        if (std::toupper(target) == 'K')
+        {
             if ((by_color == Color::White && is_white_piece(target)) ||
-                (by_color == Color::Black && is_black_piece(target))) {
+                (by_color == Color::Black && is_black_piece(target)))
+            {
                 return true;
             }
         }
@@ -474,28 +497,30 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
 
     // --- sliding pieces: rook/queen (orthogonal), bishop/queen (diagonal) ---
     int orthogonal_offsets[4][2] = {
-        {-1, 0}, {1, 0}, {0, -1}, {0, 1}
-    };
+        {-1, 0}, {1, 0}, {0, -1}, {0, 1}};
     int diagonal_offsets[4][2] = {
-        {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
-    };
+        {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
     // orthogonal rays -> look for rook or queen
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         int r = row;
         int c = column;
 
-        while (true) {
+        while (true)
+        {
             r += orthogonal_offsets[i][0];
             c += orthogonal_offsets[i][1];
 
-            if (r < 0 || r > 7 || c < 0 || c > 7) {
+            if (r < 0 || r > 7 || c < 0 || c > 7)
+            {
                 break;
             }
 
             char target = state.board[r * 8 + c];
 
-            if (is_empty(target)) {
+            if (is_empty(target))
+            {
                 continue; // keep walking
             }
 
@@ -503,7 +528,8 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
             char upper = std::toupper(target);
             if ((upper == 'R' || upper == 'Q') &&
                 ((by_color == Color::White && is_white_piece(target)) ||
-                 (by_color == Color::Black && is_black_piece(target)))) {
+                 (by_color == Color::Black && is_black_piece(target))))
+            {
                 return true;
             }
             break; // blocked, stop walking this ray either way
@@ -511,28 +537,33 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
     }
 
     // diagonal rays -> look for bishop or queen
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         int r = row;
         int c = column;
 
-        while (true) {
+        while (true)
+        {
             r += diagonal_offsets[i][0];
             c += diagonal_offsets[i][1];
 
-            if (r < 0 || r > 7 || c < 0 || c > 7) {
+            if (r < 0 || r > 7 || c < 0 || c > 7)
+            {
                 break;
             }
 
             char target = state.board[r * 8 + c];
 
-            if (is_empty(target)) {
+            if (is_empty(target))
+            {
                 continue;
             }
 
             char upper = std::toupper(target);
             if ((upper == 'B' || upper == 'Q') &&
                 ((by_color == Color::White && is_white_piece(target)) ||
-                 (by_color == Color::Black && is_black_piece(target)))) {
+                 (by_color == Color::Black && is_black_piece(target))))
+            {
                 return true;
             }
             break;
@@ -544,17 +575,22 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
     // (from the attacker's own forward direction) on either diagonal
     int pawn_row = (by_color == Color::White) ? row + 1 : row - 1;
 
-    if (pawn_row >= 0 && pawn_row <= 7) {
-        int pawn_cols[2] = { column - 1, column + 1 };
-        for (int i = 0; i < 2; ++i) {
+    if (pawn_row >= 0 && pawn_row <= 7)
+    {
+        int pawn_cols[2] = {column - 1, column + 1};
+        for (int i = 0; i < 2; ++i)
+        {
             int c = pawn_cols[i];
-            if (c < 0 || c > 7) {
+            if (c < 0 || c > 7)
+            {
                 continue;
             }
             char target = state.board[pawn_row * 8 + c];
-            if (std::toupper(target) == 'P') {
+            if (std::toupper(target) == 'P')
+            {
                 if ((by_color == Color::White && is_white_piece(target)) ||
-                    (by_color == Color::Black && is_black_piece(target))) {
+                    (by_color == Color::Black && is_black_piece(target)))
+                {
                     return true;
                 }
             }
@@ -562,4 +598,21 @@ bool is_square_attacked(const GameState& state, int square, Color by_color) {
     }
 
     return false;
+}
+
+int find_king_square(const GameState &state, Color king_color)
+{
+    int king_location = -1;
+    char king_char = (king_color == Color::White) ? 'K' : 'k';
+
+    for (int i = 0; i < 64; ++i)
+    {
+        if (state.board[i] == king_char)
+        {
+            king_location = i;
+            break;
+        }
+    }
+
+    return king_location;
 }

@@ -12,6 +12,7 @@ bool is_friendly(char piece, Color side);
 bool is_enemy(char piece, Color side);
 bool is_empty(char piece);
 bool is_square_attacked(const GameState& state, int square, Color by_color);
+int  find_king_square(const GameState& state, Color king_color);
 
 // Piece-specific generators (pseudo-legal)
 std::vector<Move> generate_knight_moves(const GameState& state, int from_square);
@@ -21,7 +22,9 @@ std::vector<Move> generate_bishop_moves(const GameState& state, int from_square)
 std::vector<Move> generate_queen_moves(const GameState& state, int from_square);
 std::vector<Move> generate_pawn_moves(const GameState& state, int from_square);
 
-// Top-level generator (all pseudo-legal moves for the side to move)
+// Top-level generators (all pseudo-moves for the side to move)
+std::vector<Move> generate_pseudolegal_moves(const GameState& state);
 std::vector<Move> generate_all_moves(const GameState& state);
+
 
 #endif
