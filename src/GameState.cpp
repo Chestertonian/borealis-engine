@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include "Move.h"
+#include "MoveGen.h"
 
 void setup_starting_gamestate(GameState &state)
 {
@@ -64,4 +65,31 @@ GameState apply_move(GameState state, const Move &move)
     state.board[move.from] = '.';
 
     return state;
+}
+
+
+GameStatus get_game_status(const GameState& state) {
+    if (generate_all_moves(state).empty()) {
+        Color attacker = (state.side_to_move == Color::White) ? Color::Black : Color::White;
+        if (is_square_attacked(state, find_king_square(state, state.side_to_move), attacker)) {
+            return GameStatus::CHECKMATE;
+        }
+
+        else {
+            return GameStatus::STALEMATE;
+        }
+    }
+    
+    else {
+        return GameStatus::ONGOING;
+    }
+}
+
+std::string game_status_to_string(GameStatus status) {
+    switch (status) {
+        case GameStatus::ONGOING:   return "Ongoing\n";
+        case GameStatus::CHECKMATE: return "Checkmate\n";
+        case GameStatus::STALEMATE: return "Stalemate\n";
+    }
+    return "Unknown"; // safety net, shouldn't be reached
 }
