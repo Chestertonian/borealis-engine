@@ -3,6 +3,7 @@
 
 #include "Board.h"
 #include <string>
+#include "Move.h"
 
 enum class Color { White, Black };
 
@@ -19,6 +20,8 @@ struct GameState {
     int halfmove_clock;
     int fullmove_number;
 };
+
+GameState apply_move(GameState state, const Move& move); 
 
 void setup_starting_gamestate(GameState& state);
 void fen_to_gamestate(const std::string& fen, GameState& state);
