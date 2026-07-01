@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="borealis.png" alt="Borealis Logo" width="500">
+  <img src="Borealis.png" alt="Borealis Logo" width="500">
 </div>
 
 
