@@ -24,6 +24,22 @@ Under no circumstances should you break existing functionality.
 
 ---
 
+## AI usage
+
+I am using Claude to a limited extent in this project. If you do the same, it's fine.
+
+However, this is a project _run by humans and for humans_. 
+
+Thus, do not:
+
+- Spam the repo with PRs consisting of AI-generated code
+- Make a PR with code that you don't understand
+- Pretend that you wrote code that you didn't
+- Simply copy-and-paste code from an LLM to here
+
+
+---
+
 ## Making changes
 
 1. Fork the repo
@@ -45,7 +61,7 @@ This is essentially one-person development right now. I appreciate PRs, but I ca
 
 Thanks for understanding and for taking interest anyway! Once the engine can handle UCI and all chess rules/edge cases, I'll be able to deal with PRs.
 
-- Chestertonian
+— Chestertonian
 
 ---
 
