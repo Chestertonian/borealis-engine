@@ -30,7 +30,6 @@ How did you verify these changes work correctly?
 
 ```bash
 # Add commands/output as needed
+```
 - [ ] Tested on Windows/macOS/Linux
-- [ ] Ran benchmark suite against reference engine
-- [ ] Verified no regressions in [specific area]
-- [ ] Unit tests pass locally
+- [ ] etc
