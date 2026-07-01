@@ -6,12 +6,12 @@
 
 int main() {
     GameState state;
-    // setup_starting_gamestate(state);
-    fen_to_gamestate("7r/p7/P7/8/3pKRBQ/8/8/N7 b - - 0 1", state);
+    setup_starting_gamestate(state);
+    // fen_to_gamestate("7r/p7/P7/8/3KpRBQ/3P1P2/8/N7 b - - 0 1", state);
     print_gamestate(state);
 
-    std::vector<Move> pawn_moves = generate_pawn_moves(state, coordinate_to_square("a7"));
-    for (const Move& m : pawn_moves) {
+    std::vector<Move> all_moves = generate_all_moves(state);
+    for (const Move& m : all_moves) {
         print_move(m);
     };
 
