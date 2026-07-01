@@ -1,4 +1,7 @@
-! [Borealis logo] (Borealis.png)
+<div align="center">
+  <img src="borealis.png" alt="Borealis Logo" width="500">
+</div>
+
 
 # Borealis chess engine
 
