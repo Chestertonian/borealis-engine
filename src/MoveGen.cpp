@@ -1,5 +1,6 @@
 #include "MoveGen.h" 
 #include <cctype>
+#include <iostream>
 
 std::vector<Move> generate_queen_moves(const GameState& state, int from_square) {
     // 8 directions
@@ -223,6 +224,76 @@ std::vector<Move> generate_king_moves(const GameState& state, int from_square) {
         
     return moves;
 }
+
+std::vector<Move> generate_pawn_moves(const GameState& state, int from_square) {
+    // from_square = where the pawn is now.
+
+
+    // define row/column 
+    int row = from_square / 8;
+    int column = from_square % 8;
+
+    int direction;
+    int starting_row;
+
+    if (state.side_to_move == Color::White) {
+        direction = -1;
+        starting_row = 6;
+    } else {
+        direction = 1;
+        starting_row = 1;
+    }
+
+
+    std::vector<Move> moves;
+    for (int i = 0; i < 1; ++i) {
+        int new_row = row + direction;
+        // boundary check
+        if (new_row < 0 || new_row > 7) {
+            continue;
+        }
+
+        int to_square = new_row * 8 + column;
+        char target = state.board[to_square];
+
+        // is own piece?
+        if (is_friendly(target, state.side_to_move)) {
+            continue;
+        }    
+
+        if (is_enemy(target, state.side_to_move)) {
+            continue;
+        }   
+
+        // construct new move
+        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None}); }
+
+    // initial two-space push
+
+    for (int i = 0; i < 1; ++i) {
+        if (row == starting_row) {
+        int new_row = row + (direction*2);
+
+        if (new_row < 0 || new_row > 7) {
+            continue;
+        }
+
+        int to_square = new_row * 8 + column;
+        int middle_square = (row + direction) *8 + column;
+        char target = state.board[to_square];
+
+        if (is_empty(state.board[middle_square]) && is_empty(target)) {
+            std::cout << is_empty(state.board[middle_square]);
+            moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None}); 
+            moves.push_back(Move{from_square, middle_square, MoveType::Normal, PieceType::None}); }
+        }
+    }
+        
+    return moves;
+
+    
+}
+
 
 // helpers
 

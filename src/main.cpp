@@ -7,35 +7,13 @@
 int main() {
     GameState state;
     // setup_starting_gamestate(state);
-    fen_to_gamestate("7r/8/8/8/4KRBQ/8/8/N7 w - - 0 1", state);
+    fen_to_gamestate("7r/p7/P7/8/3pKRBQ/8/8/N7 b - - 0 1", state);
     print_gamestate(state);
 
-    std::vector<Move> knight_moves = generate_knight_moves(state, coordinate_to_square("a1"));
-    for (const Move& m : knight_moves) {
-        print_move(m);
-    }
-    
-    std::vector<Move> king_moves = generate_king_moves(state, coordinate_to_square("e4"));
-    for (const Move& m : king_moves) {
+    std::vector<Move> pawn_moves = generate_pawn_moves(state, coordinate_to_square("a7"));
+    for (const Move& m : pawn_moves) {
         print_move(m);
     };
-
-    std::vector<Move> rook_moves = generate_rook_moves(state, coordinate_to_square("f4"));
-    for (const Move& m : rook_moves) {
-        print_move(m);
-    };
-
-    std::vector<Move> bishop_moves = generate_bishop_moves(state, coordinate_to_square("g4"));
-    for (const Move& m : bishop_moves) {
-        print_move(m);
-    };
-
-    std::vector<Move> queen_moves = generate_queen_moves(state, coordinate_to_square("h4"));
-    for (const Move& m : queen_moves) {
-        print_move(m);
-    };
-
-
 
     // Test square_to_coordinate
     // std::cout << "Square 0:  " << square_to_coordinate(0) << '\n';  // a8
