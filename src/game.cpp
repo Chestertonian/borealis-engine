@@ -160,7 +160,9 @@ void play_game()
         GameStatus status = get_game_status(state);
         if (status != GameStatus::ONGOING)
         {
+            std::cout << "\n";
             print_gamestate(state);
+            std::cout << "\n";
             report_game_end(status);
             break;
         }

@@ -104,6 +104,10 @@ GameState apply_move(GameState state, const Move &move)
     state.side_to_move = (state.side_to_move == Color::White)
                              ? Color::Black
                              : Color::White;
+    if (state.side_to_move==Color::White)
+    {
+        state.fullmove_number += 1;
+    }
 
     if (move.type == MoveType::Promotion)
     {
@@ -305,7 +309,6 @@ PieceType notation_to_piece_type(char piece)
 
     return type;
 }
-
 
 bool is_insufficient_material(const GameState &state)
 {
