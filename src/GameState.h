@@ -31,6 +31,7 @@ enum class GameStatus { ONGOING, CHECKMATE, STALEMATE, FIFTY_MOVE_DRAW, INSUFFIC
 
 GameStatus get_game_status(const GameState& state);
 std::string game_status_to_string(GameStatus status);
+bool is_insufficient_material(const GameState &state);
 
 char piece_type_to_notation(PieceType piece, const GameState& state);
 

@@ -204,6 +204,11 @@ GameStatus get_game_status(const GameState &state)
         return GameStatus::FIFTY_MOVE_DRAW;
     }
 
+    if (is_insufficient_material(state))
+    {
+        return GameStatus::INSUFFICIENT_MATERIAL;
+    }
+
     else
     {
         return GameStatus::ONGOING;
@@ -222,7 +227,8 @@ std::string game_status_to_string(GameStatus status)
         return "Stalemate\n";
     case GameStatus::FIFTY_MOVE_DRAW:
         return "Draw by fifty-move rule\n";
-    
+    case GameStatus::INSUFFICIENT_MATERIAL:
+        return "Draw by insufficient material\n";
     }
     return "Unknown"; // safety net, shouldn't be reached
 }
@@ -265,4 +271,63 @@ char piece_type_to_notation(PieceType piece, const GameState &state)
     {
         return c;
     }
+}
+
+bool is_insufficient_material(const GameState &state)
+{
+    int white_bishops = 0, black_bishops = 0;
+    int white_knights = 0, black_knights = 0;
+
+    for (int sq = 0; sq < 64; sq++)
+    {
+        char piece = state.board[sq];
+        if (piece == 'p' || piece == 'P' || piece == 'r' || piece == 'R' || piece == 'Q' || piece == 'q')
+        {
+            return false;
+        }
+        // tally bishops/knights
+        if (piece == 'b')
+        {
+            black_bishops += 1;
+        }
+        if (piece == 'n')
+        {
+            black_knights += 1;
+        }
+        if (piece == 'B')
+        {
+            white_bishops += 1;
+        }
+        if (piece == 'N')
+        {
+            white_knights += 1;
+        }
+    }
+
+    // pattern match against tallies
+    bool no_black_pieces = (black_bishops == 0 && black_knights == 0);
+    bool no_white_pieces = (white_bishops == 0 && white_knights == 0);
+
+    // K vs K
+    if (no_white_pieces && no_black_pieces)
+        return true;
+
+    // K+B vs K (either side)
+    if (white_bishops == 1 && white_knights == 0 && no_black_pieces)
+        return true;
+    if (black_bishops == 1 && black_knights == 0 && no_white_pieces)
+        return true;
+
+    // K+N vs K (either side)
+    if (white_knights == 1 && white_bishops == 0 && no_black_pieces)
+        return true;
+    if (black_knights == 1 && black_bishops == 0 && no_white_pieces)
+        return true;
+
+    // K+B vs K+B (treated as always insufficient for now, ignoring square color)
+    if (white_bishops == 1 && white_knights == 0 &&
+        black_bishops == 1 && black_knights == 0)
+        return true;
+
+    return false;
 }

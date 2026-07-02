@@ -9,21 +9,31 @@ int main()
 {
     GameState state;
 
-    fen_to_gamestate("8/3p4/8/8/8/8/8/K6k w - - 98 150", state); //testing position
+    fen_to_gamestate("8/8/8/8/8/8/8/K6k w - - 98 150", state); //testing position
 
     // setup_starting_gamestate(state);
 
-    Move test_move = Move{coordinate_to_square("a1"), coordinate_to_square("a2"), MoveType::Normal};
-    state = apply_move(state, test_move);
-    print_move(test_move);
+    // Move test_move = Move{coordinate_to_square("a1"), coordinate_to_square("a2"), MoveType::Normal};
+    // state = apply_move(state, test_move);
+    // print_move(test_move);
     print_gamestate(state);
-
-    test_move = Move{coordinate_to_square("h1"), coordinate_to_square("g1"), MoveType::Normal};
-    state = apply_move(state, test_move);
-    print_move(test_move);
-    print_gamestate(state);
-
     GameStatus status = get_game_status(state);
+    std::cout << game_status_to_string(status);
+
+    fen_to_gamestate("8/8/8/8/8/8/8/5KBk w - - 98 150", state);
+    print_gamestate(state);
+    status = get_game_status(state);
+    std::cout << game_status_to_string(status);
+
+    fen_to_gamestate("8/8/8/8/8/8/8/5KNk w - - 98 150", state);
+    print_gamestate(state);
+    status = get_game_status(state);
+    std::cout << game_status_to_string(status);
+
+    fen_to_gamestate("b7/8/8/8/8/8/8/5KBk w - - 98 150", state);
+    print_gamestate(state);
+
+    status = get_game_status(state);
     std::cout << game_status_to_string(status);
 
     // perft_divide(state, 2);
