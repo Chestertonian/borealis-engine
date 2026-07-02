@@ -7,14 +7,21 @@
 int main()
 {
     GameState state;
-    
+
+    // fen_to_gamestate("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ", state); (KIWIPETE position)
     setup_starting_gamestate(state);
     
-    for (int depth = 1; depth <= 5; ++depth) {
-        std::cout << "Perft(" << depth << ") = " << perft(state, depth) << std::endl;
-    }
+    Move test_move = Move{coordinate_to_square("e2"), coordinate_to_square("e4"), MoveType::DoublePawnPush};
+    state = apply_move(state, test_move);
+    print_move(test_move);
+    print_gamestate(state);
+    perft_divide(state, 6);
 
-    // fen_to_gamestate("r3k2r/8/8/8/8/8/8/4K2R b Kq - 1 100", state);
+    // for (int depth = 1; depth <= 4; ++depth) {
+    //   std::cout << "Perft(" << depth << ") = " << perft(state, depth) << std::endl;
+    // }
+
+    // 
 
     // print_gamestate(state);
 
@@ -24,10 +31,6 @@ int main()
     //    print_move(m);
     // };
 
-    // Move test_move = Move{coordinate_to_square("h8"), coordinate_to_square("h1"), MoveType::Normal};
-    // state = apply_move(state, test_move);
-    // print_move(test_move);
-    // print_gamestate(state);
 
 
     // Test square_to_coordinate

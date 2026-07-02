@@ -34,7 +34,8 @@ std::vector<Move> generate_castling_moves(const GameState& state);
 std::vector<Move> generate_pseudolegal_moves(const GameState& state);
 std::vector<Move> generate_all_moves(const GameState& state);
 
-// perft testing function
+// perft testing functions
 long long perft(const GameState& state, int depth);
+void perft_divide(const GameState& state, int depth);
 
 #endif

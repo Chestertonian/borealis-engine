@@ -1,6 +1,8 @@
 #include "MoveGen.h"
 #include <cctype>
 #include "GameState.h"
+#include <iostream>
+#include <ostream>
 
 std::vector<Move> generate_king_moves(const GameState &state, int from_square)
 {
@@ -319,7 +321,7 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 
             if (is_empty(state.board[middle_square]) && is_empty(target))
             {
-                moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+                moves.push_back(Move{from_square, to_square, MoveType::DoublePawnPush, PieceType::None});
             }
         }
     }
@@ -771,4 +773,20 @@ long long perft(const GameState& state, int depth) {
     }
 
     return nodes;
+}
+
+void perft_divide(const GameState& state, int depth) {
+    std::vector<Move> legal_moves = generate_all_moves(state);
+    long long total = 0;
+
+    for (const Move& move : legal_moves) {
+        GameState next_state = apply_move(state, move);
+        long long count = perft(next_state, depth - 1);
+        total += count;
+
+        print_move(move);
+        std::cout << ": " << count << std::endl;
+    }
+
+    std::cout << "Total: " << total << std::endl;
 }
