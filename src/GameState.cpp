@@ -74,6 +74,20 @@ GameState apply_move(GameState state, const Move &move)
         return state;
     }
 
+    if (move.to == 63) state.white_kingside_castle = false;  
+    if (move.to == 56) state.white_queenside_castle = false;
+    if (move.to == 7)  state.black_kingside_castle = false;
+    if (move.to == 0)  state.black_queenside_castle = false;
+
+    if (move.from == 63) state.white_kingside_castle = false;  
+    if (move.from == 56) state.white_queenside_castle = false;
+    if (move.from == 60) state.white_kingside_castle = false;
+    if (move.from == 60) state.white_queenside_castle = false;
+    if (move.from == 7)  state.black_kingside_castle = false;
+    if (move.from == 0)  state.black_queenside_castle = false;
+    if (move.from == 4)  state.black_kingside_castle = false;
+    if (move.from == 4)  state.black_queenside_castle = false;
+
     state.side_to_move = (state.side_to_move == Color::White)
                              ? Color::Black
                              : Color::White;

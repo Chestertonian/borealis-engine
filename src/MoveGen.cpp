@@ -432,7 +432,7 @@ std::vector<Move> generate_castling_moves(const GameState &state)
         }
     }
 
-    if (state.side_to_move == Color::White)
+    if (state.side_to_move == Color::Black)
     {
     // Black kingside castling
     if (state.black_kingside_castle)

@@ -8,7 +8,7 @@ int main()
 {
     GameState state;
     // setup_starting_gamestate(state);
-    fen_to_gamestate("r3k3/8/8/8/8/8/8/4K2R w Kq - 0 100", state);
+    fen_to_gamestate("r3k2r/8/8/8/8/8/8/4K2R b Kq - 1 100", state);
 
     print_gamestate(state);
 
@@ -18,10 +18,10 @@ int main()
         print_move(m);
     };
 
-    // test_move = Move{coordinate_to_square("e5"), coordinate_to_square("d6"), MoveType::EnPassant};
-    // state = apply_move(state, test_move);
-    // print_move(test_move);
-    // print_gamestate(state);
+    Move test_move = Move{coordinate_to_square("h8"), coordinate_to_square("h1"), MoveType::Normal};
+    state = apply_move(state, test_move);
+    print_move(test_move);
+    print_gamestate(state);
 
 
     // Test square_to_coordinate
