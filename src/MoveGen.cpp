@@ -756,3 +756,19 @@ void add_pawn_move(std::vector<Move> &moves, int from, int to, bool is_promotion
         moves.push_back(Move{from, to, MoveType::Normal, PieceType::None});
     }
 }
+
+long long perft(const GameState& state, int depth) {
+    if (depth == 0) {
+        return 1;
+    }
+
+    std::vector<Move> legal_moves = generate_all_moves(state);
+    long long nodes = 0;
+
+    for (const Move& move : legal_moves) {
+        GameState next_state = apply_move(state, move);
+        nodes += perft(next_state, depth - 1);
+    }
+
+    return nodes;
+}
