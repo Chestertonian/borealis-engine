@@ -273,6 +273,40 @@ char piece_type_to_notation(PieceType piece, const GameState &state)
     }
 }
 
+PieceType notation_to_piece_type(char piece)
+{
+    PieceType type = PieceType::None;
+
+    switch (std::tolower(piece))
+    {
+    case 'q':
+        type=PieceType::Queen;
+        break;
+    case 'k':
+        type=PieceType::King;
+        break;
+    case 'r':
+        type=PieceType::Rook;
+        break;
+    case 'b':
+        type=PieceType::Bishop;
+        break;
+    case 'n':
+        type=PieceType::Knight;
+        break;
+    case 'p':
+        type=PieceType::Pawn;
+        break;
+
+    default:
+        type = PieceType::None;
+        break;
+    }
+
+    return type;
+}
+
+
 bool is_insufficient_material(const GameState &state)
 {
     int white_bishops = 0, black_bishops = 0;

@@ -34,5 +34,6 @@ std::string game_status_to_string(GameStatus status);
 bool is_insufficient_material(const GameState &state);
 
 char piece_type_to_notation(PieceType piece, const GameState& state);
+PieceType notation_to_piece_type(char piece);
 
 #endif
