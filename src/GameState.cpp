@@ -67,17 +67,37 @@ GameState apply_move(GameState state, const Move &move)
                                  ? Color::Black
                                  : Color::White;
 
-        state.board[move.to - (direction*8)] = '.';
+        state.board[move.to - (direction * 8)] = '.';
         state.board[move.to] = state.board[move.from];
         state.board[move.from] = '.';
+        state.en_passant_square = -1;
         return state;
     }
+
     state.side_to_move = (state.side_to_move == Color::White)
                              ? Color::Black
                              : Color::White;
 
     state.board[move.to] = state.board[move.from];
     state.board[move.from] = '.';
+
+    state.en_passant_square = -1;
+
+    if (move.type == MoveType::DoublePawnPush)
+    {
+        int direction;
+
+        if (state.side_to_move == Color::White)
+        {
+            direction = -1;
+        }
+        else
+        {
+            direction = 1;
+        }
+
+        state.en_passant_square = move.to - (direction * 8);
+    }
 
     return state;
 }
