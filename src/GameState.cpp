@@ -71,30 +71,56 @@ GameState apply_move(GameState state, const Move &move)
         state.board[move.to] = state.board[move.from];
         state.board[move.from] = '.';
         state.en_passant_square = -1;
+        state.halfmove_clock = 0;
         return state;
     }
 
-    if (move.to == 63) state.white_kingside_castle = false;  
-    if (move.to == 56) state.white_queenside_castle = false;
-    if (move.to == 7)  state.black_kingside_castle = false;
-    if (move.to == 0)  state.black_queenside_castle = false;
+    if (move.to == 63)
+        state.white_kingside_castle = false;
+    if (move.to == 56)
+        state.white_queenside_castle = false;
+    if (move.to == 7)
+        state.black_kingside_castle = false;
+    if (move.to == 0)
+        state.black_queenside_castle = false;
 
-    if (move.from == 63) state.white_kingside_castle = false;  
-    if (move.from == 56) state.white_queenside_castle = false;
-    if (move.from == 60) state.white_kingside_castle = false;
-    if (move.from == 60) state.white_queenside_castle = false;
-    if (move.from == 7)  state.black_kingside_castle = false;
-    if (move.from == 0)  state.black_queenside_castle = false;
-    if (move.from == 4)  state.black_kingside_castle = false;
-    if (move.from == 4)  state.black_queenside_castle = false;
+    if (move.from == 63)
+        state.white_kingside_castle = false;
+    if (move.from == 56)
+        state.white_queenside_castle = false;
+    if (move.from == 60)
+        state.white_kingside_castle = false;
+    if (move.from == 60)
+        state.white_queenside_castle = false;
+    if (move.from == 7)
+        state.black_kingside_castle = false;
+    if (move.from == 0)
+        state.black_queenside_castle = false;
+    if (move.from == 4)
+        state.black_kingside_castle = false;
+    if (move.from == 4)
+        state.black_queenside_castle = false;
 
     state.side_to_move = (state.side_to_move == Color::White)
                              ? Color::Black
                              : Color::White;
 
-    if (move.type==MoveType::Promotion) 
+    if (move.type == MoveType::Promotion)
     {
         state.board[move.from] = piece_type_to_notation(move.promotion_piece, state);
+        state.halfmove_clock = -1;
+    }
+
+    if (!is_empty(state.board[move.to]))
+    {
+        state.halfmove_clock = -1;
+    }
+
+    char piece = std::tolower(static_cast<unsigned char>(state.board[move.from]));
+
+    if (piece == 'p')
+    {
+        state.halfmove_clock = -1;
     }
 
     state.board[move.to] = state.board[move.from];
@@ -152,6 +178,8 @@ GameState apply_move(GameState state, const Move &move)
         state.en_passant_square = move.to + (direction * 8);
     }
 
+    state.halfmove_clock += 1;
+
     return state;
 }
 
@@ -171,6 +199,11 @@ GameStatus get_game_status(const GameState &state)
         }
     }
 
+    if (state.halfmove_clock >= 100)
+    {
+        return GameStatus::FIFTY_MOVE_DRAW;
+    }
+
     else
     {
         return GameStatus::ONGOING;
@@ -187,27 +220,49 @@ std::string game_status_to_string(GameStatus status)
         return "Checkmate\n";
     case GameStatus::STALEMATE:
         return "Stalemate\n";
+    case GameStatus::FIFTY_MOVE_DRAW:
+        return "Draw by fifty-move rule\n";
+    
     }
     return "Unknown"; // safety net, shouldn't be reached
 }
 
-char piece_type_to_notation(PieceType piece, const GameState& state) {
+char piece_type_to_notation(PieceType piece, const GameState &state)
+{
     char c = '?';
 
-    switch (piece) {
-        case PieceType::King:   c = 'K'; break;
-        case PieceType::Queen:  c = 'Q'; break;
-        case PieceType::Rook:   c = 'R'; break;
-        case PieceType::Bishop: c = 'B'; break;
-        case PieceType::Knight: c = 'N'; break;
-        case PieceType::Pawn:   c = 'P'; break;
-        default:                c = '?'; break;
+    switch (piece)
+    {
+    case PieceType::King:
+        c = 'K';
+        break;
+    case PieceType::Queen:
+        c = 'Q';
+        break;
+    case PieceType::Rook:
+        c = 'R';
+        break;
+    case PieceType::Bishop:
+        c = 'B';
+        break;
+    case PieceType::Knight:
+        c = 'N';
+        break;
+    case PieceType::Pawn:
+        c = 'P';
+        break;
+    default:
+        c = '?';
+        break;
     }
 
     // White to move -> lowercase, Black to move -> uppercase
-    if (state.side_to_move==Color::White) {
+    if (state.side_to_move == Color::White)
+    {
         return static_cast<char>(std::tolower(c));
-    } else {
+    }
+    else
+    {
         return c;
     }
 }

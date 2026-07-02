@@ -27,7 +27,7 @@ void setup_starting_gamestate(GameState& state);
 void fen_to_gamestate(const std::string& fen, GameState& state);
 void print_gamestate(const GameState& state);
 
-enum class GameStatus { ONGOING, CHECKMATE, STALEMATE };
+enum class GameStatus { ONGOING, CHECKMATE, STALEMATE, FIFTY_MOVE_DRAW, INSUFFICIENT_MATERIAL, REPETITION };
 
 GameStatus get_game_status(const GameState& state);
 std::string game_status_to_string(GameStatus status);
