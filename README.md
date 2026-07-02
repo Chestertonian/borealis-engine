@@ -19,5 +19,5 @@ If you'd like to contribute, thanks for your interest! Frankly, this project isn
 
 ## Releases
 
-- ** July 2, 2026 ** — v0.1 — Ginnungagap
+- **July 2, 2026** — v0.1 — Ginnungagap
   Supports move generation; playing in CLI against an opponent who moves randomly.
