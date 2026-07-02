@@ -2,6 +2,45 @@
 #include <cctype>
 #include "GameState.h"
 
+std::vector<Move> generate_king_moves(const GameState &state, int from_square)
+{
+    // from_square = where the king is now.
+
+    // moves of the king
+    int offsets[8][2] = {
+        {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+
+    // define row/column
+    int row = from_square / 8;
+    int column = from_square % 8;
+
+    std::vector<Move> moves;
+    for (int i = 0; i < 8; ++i)
+    {
+        int new_row = row + offsets[i][0];
+        int new_col = column + offsets[i][1];
+        // boundary check
+        if (new_row < 0 || new_row > 7 || new_col < 0 || new_col > 7)
+        {
+            continue;
+        }
+
+        int to_square = new_row * 8 + new_col;
+        char target = state.board[to_square];
+
+        // is own piece?
+        if (is_friendly(target, state.side_to_move))
+        {
+            continue;
+        }
+
+        // construct new move
+        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
+    }
+
+    return moves;
+}
+
 std::vector<Move> generate_queen_moves(const GameState &state, int from_square)
 {
     // 8 directions
@@ -197,46 +236,6 @@ std::vector<Move> generate_knight_moves(const GameState &state, int from_square)
     return moves;
 }
 
-// TODO: add check
-std::vector<Move> generate_king_moves(const GameState &state, int from_square)
-{
-    // from_square = where the king is now.
-
-    // moves of the king
-    int offsets[8][2] = {
-        {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
-
-    // define row/column
-    int row = from_square / 8;
-    int column = from_square % 8;
-
-    std::vector<Move> moves;
-    for (int i = 0; i < 8; ++i)
-    {
-        int new_row = row + offsets[i][0];
-        int new_col = column + offsets[i][1];
-        // boundary check
-        if (new_row < 0 || new_row > 7 || new_col < 0 || new_col > 7)
-        {
-            continue;
-        }
-
-        int to_square = new_row * 8 + new_col;
-        char target = state.board[to_square];
-
-        // is own piece?
-        if (is_friendly(target, state.side_to_move))
-        {
-            continue;
-        }
-
-        // construct new move
-        moves.push_back(Move{from_square, to_square, MoveType::Normal, PieceType::None});
-    }
-
-    return moves;
-}
-
 std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
 {
     // from_square = where the pawn is now.
@@ -402,7 +401,68 @@ std::vector<Move> generate_pawn_moves(const GameState &state, int from_square)
     return moves;
 }
 
-// all pseudo-legal moves
+std::vector<Move> generate_castling_moves(const GameState &state)
+{
+    std::vector<Move> moves;
+
+    if (state.side_to_move == Color::White)
+    {
+        // White kingside castling
+        if (state.white_kingside_castle)
+        {
+            if (is_empty(state.board[61]) && is_empty(state.board[62]))
+            {
+                if (!(is_square_attacked(state, 60, Color::Black) || is_square_attacked(state, 61, Color::Black) || is_square_attacked(state, 62, Color::Black)))
+                {
+                    moves.push_back(Move{60, 62, MoveType::CastleKingside, PieceType::None});
+                }
+            }
+        }
+
+        // White queenside castling
+        if (state.white_queenside_castle)
+        {
+            if (is_empty(state.board[57]) && is_empty(state.board[58]) && is_empty(state.board[59]))
+            {
+                if (!(is_square_attacked(state, 60, Color::Black) || is_square_attacked(state, 59, Color::Black) || is_square_attacked(state, 58, Color::Black)))
+                {
+                    moves.push_back(Move{60, 58, MoveType::CastleQueenside, PieceType::None});
+                }
+            }
+        }
+    }
+
+    if (state.side_to_move == Color::White)
+    {
+    // Black kingside castling
+    if (state.black_kingside_castle)
+    {
+        if (is_empty(state.board[5]) && is_empty(state.board[6]))
+        {
+            if (!(is_square_attacked(state, 4, Color::White) || is_square_attacked(state, 5, Color::White) || is_square_attacked(state, 6, Color::White)))
+            {
+                moves.push_back(Move{4, 6, MoveType::CastleKingside, PieceType::None});
+            }
+        }
+    }
+
+    // Black queenside castling
+    if (state.black_queenside_castle)
+    {
+        if (is_empty(state.board[3]) && is_empty(state.board[2]) && is_empty(state.board[1]))
+        {
+            if (!(is_square_attacked(state, 1, Color::White) || is_square_attacked(state, 2, Color::White) || is_square_attacked(state, 3, Color::White) || is_square_attacked(state, 4, Color::White)))
+            {
+                moves.push_back(Move{4, 2, MoveType::CastleQueenside, PieceType::None});
+            }
+        }
+    }
+}
+
+    return moves;
+}
+
+// all pseudo-legal moves --> doesn't filter for check, for example
 std::vector<Move> generate_pseudolegal_moves(const GameState &state)
 {
     std::vector<Move> moves;
@@ -427,6 +487,7 @@ std::vector<Move> generate_pseudolegal_moves(const GameState &state)
         }
 
         std::vector<Move> piece_moves;
+        std::vector<Move> castle_moves;
 
         switch (std::toupper(piece))
         {
@@ -447,6 +508,8 @@ std::vector<Move> generate_pseudolegal_moves(const GameState &state)
             break;
         case 'K':
             piece_moves = generate_king_moves(state, square);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+            piece_moves = generate_castling_moves(state);
             break;
         }
 
@@ -456,6 +519,7 @@ std::vector<Move> generate_pseudolegal_moves(const GameState &state)
     return moves;
 }
 
+// all legal moves
 std::vector<Move> generate_all_moves(const GameState &state)
 {
     std::vector<Move> pseudolegals = generate_pseudolegal_moves(state);

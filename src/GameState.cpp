@@ -83,6 +83,40 @@ GameState apply_move(GameState state, const Move &move)
 
     state.en_passant_square = -1;
 
+    if (move.type == MoveType::CastleKingside)
+    {
+        state.board[move.from + 1] = state.board[move.to + 1];
+        state.board[move.to + 1] = '.';
+
+        if (state.side_to_move == Color::Black)
+        {
+            state.white_kingside_castle = false;
+            state.white_queenside_castle = false;
+        }
+        else
+        {
+            state.black_kingside_castle = false;
+            state.black_queenside_castle = false;
+        }
+    }
+
+    if (move.type == MoveType::CastleQueenside)
+    {
+        state.board[move.from - 1] = state.board[move.to - 2];
+        state.board[move.to - 2] = '.';
+
+        if (state.side_to_move == Color::Black)
+        {
+            state.white_kingside_castle = false;
+            state.white_queenside_castle = false;
+        }
+        else
+        {
+            state.black_kingside_castle = false;
+            state.black_queenside_castle = false;
+        }
+    }
+
     if (move.type == MoveType::DoublePawnPush)
     {
         int direction;
