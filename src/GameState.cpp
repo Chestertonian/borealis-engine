@@ -92,6 +92,11 @@ GameState apply_move(GameState state, const Move &move)
                              ? Color::Black
                              : Color::White;
 
+    if (move.type==MoveType::Promotion) 
+    {
+        state.board[move.from] = piece_type_to_notation(move.promotion_piece, state);
+    }
+
     state.board[move.to] = state.board[move.from];
     state.board[move.from] = '.';
 
@@ -144,7 +149,7 @@ GameState apply_move(GameState state, const Move &move)
             direction = 1;
         }
 
-        state.en_passant_square = move.to - (direction * 8);
+        state.en_passant_square = move.to + (direction * 8);
     }
 
     return state;
@@ -184,4 +189,25 @@ std::string game_status_to_string(GameStatus status)
         return "Stalemate\n";
     }
     return "Unknown"; // safety net, shouldn't be reached
+}
+
+char piece_type_to_notation(PieceType piece, const GameState& state) {
+    char c = '?';
+
+    switch (piece) {
+        case PieceType::King:   c = 'K'; break;
+        case PieceType::Queen:  c = 'Q'; break;
+        case PieceType::Rook:   c = 'R'; break;
+        case PieceType::Bishop: c = 'B'; break;
+        case PieceType::Knight: c = 'N'; break;
+        case PieceType::Pawn:   c = 'P'; break;
+        default:                c = '?'; break;
+    }
+
+    // White to move -> lowercase, Black to move -> uppercase
+    if (state.side_to_move==Color::White) {
+        return static_cast<char>(std::tolower(c));
+    } else {
+        return c;
+    }
 }

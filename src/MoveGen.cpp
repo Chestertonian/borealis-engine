@@ -436,30 +436,30 @@ std::vector<Move> generate_castling_moves(const GameState &state)
 
     if (state.side_to_move == Color::Black)
     {
-    // Black kingside castling
-    if (state.black_kingside_castle)
-    {
-        if (is_empty(state.board[5]) && is_empty(state.board[6]))
+        // Black kingside castling
+        if (state.black_kingside_castle)
         {
-            if (!(is_square_attacked(state, 4, Color::White) || is_square_attacked(state, 5, Color::White) || is_square_attacked(state, 6, Color::White)))
+            if (is_empty(state.board[5]) && is_empty(state.board[6]))
             {
-                moves.push_back(Move{4, 6, MoveType::CastleKingside, PieceType::None});
+                if (!(is_square_attacked(state, 4, Color::White) || is_square_attacked(state, 5, Color::White) || is_square_attacked(state, 6, Color::White)))
+                {
+                    moves.push_back(Move{4, 6, MoveType::CastleKingside, PieceType::None});
+                }
             }
         }
-    }
 
-    // Black queenside castling
-    if (state.black_queenside_castle)
-    {
-        if (is_empty(state.board[3]) && is_empty(state.board[2]) && is_empty(state.board[1]))
+        // Black queenside castling
+        if (state.black_queenside_castle)
         {
-            if (!(is_square_attacked(state, 1, Color::White) || is_square_attacked(state, 2, Color::White) || is_square_attacked(state, 3, Color::White) || is_square_attacked(state, 4, Color::White)))
+            if (is_empty(state.board[3]) && is_empty(state.board[2]) && is_empty(state.board[1]))
             {
-                moves.push_back(Move{4, 2, MoveType::CastleQueenside, PieceType::None});
+                if (!(is_square_attacked(state, 2, Color::White) || is_square_attacked(state, 3, Color::White) || is_square_attacked(state, 4, Color::White)))
+                {
+                    moves.push_back(Move{4, 2, MoveType::CastleQueenside, PieceType::None});
+                }
             }
         }
     }
-}
 
     return moves;
 }
@@ -759,15 +759,18 @@ void add_pawn_move(std::vector<Move> &moves, int from, int to, bool is_promotion
     }
 }
 
-long long perft(const GameState& state, int depth) {
-    if (depth == 0) {
+long long perft(const GameState &state, int depth)
+{
+    if (depth == 0)
+    {
         return 1;
     }
 
     std::vector<Move> legal_moves = generate_all_moves(state);
     long long nodes = 0;
 
-    for (const Move& move : legal_moves) {
+    for (const Move &move : legal_moves)
+    {
         GameState next_state = apply_move(state, move);
         nodes += perft(next_state, depth - 1);
     }
@@ -775,11 +778,13 @@ long long perft(const GameState& state, int depth) {
     return nodes;
 }
 
-void perft_divide(const GameState& state, int depth) {
+void perft_divide(const GameState &state, int depth)
+{
     std::vector<Move> legal_moves = generate_all_moves(state);
     long long total = 0;
 
-    for (const Move& move : legal_moves) {
+    for (const Move &move : legal_moves)
+    {
         GameState next_state = apply_move(state, move);
         long long count = perft(next_state, depth - 1);
         total += count;

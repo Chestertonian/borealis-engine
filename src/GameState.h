@@ -32,4 +32,6 @@ enum class GameStatus { ONGOING, CHECKMATE, STALEMATE };
 GameStatus get_game_status(const GameState& state);
 std::string game_status_to_string(GameStatus status);
 
+char piece_type_to_notation(PieceType piece, const GameState& state);
+
 #endif
