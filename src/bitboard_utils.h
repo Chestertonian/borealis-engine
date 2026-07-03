@@ -11,3 +11,4 @@ int square_index(int rank, int file);
 // Prints a 64-bit bitboard as an 8x8 grid, rank 8 on top, file a on the left.
 // Pure debug utility.
 void print_bitboard(uint64_t bitboard);
+

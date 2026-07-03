@@ -21,4 +21,3 @@ void print_bitboard(uint64_t bitboard)
         std::cout << "\n";
     }
 }
-
