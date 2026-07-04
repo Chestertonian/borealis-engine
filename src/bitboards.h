@@ -3,13 +3,13 @@
 #include <cstdint>
 #include <array>
 #include "bitboard_utils.h"
+#include <iostream>
 
 enum class PieceType { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 enum class Color { WHITE, BLACK };
 
 // Index into a 12-element bitboard array: 0-5 = white pieces, 6-11 = black,
-// ordered PAWN..KING within each color. Same idea as an enum-to-array-index
-// pattern you've already used for PieceType elsewhere.
+// ordered PAWN..KING within each color. 
 int piece_index(Color color, PieceType type);
 
 struct BoardState {
@@ -22,8 +22,15 @@ struct BoardState {
     int fullmove_number;
 };
 
-// Returns a BoardState set up for the standard chess starting position.
+// Returns a BoardState set up for the starting position
 BoardState starting_position();
 
 // Converts to the bitboard to which it belongs.
 int piece_index(Color color, PieceType type);
+
+// Generate bitboards to show piece occupancy (useful for move generation!)
+uint64_t white_occupied(const BoardState& board);
+uint64_t black_occupied(const BoardState& board);
+uint64_t all_occupied(const BoardState& board);
+
+void print_board(const BoardState& board);

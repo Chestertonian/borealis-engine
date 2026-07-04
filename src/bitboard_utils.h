@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include "bitboards.h"
+#include <array>
 
 
 // Converts a (rank, file) pair to a LERF square index (a1 = 0, h8 = 63).

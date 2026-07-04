@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include "bitboards.h"
 
 
 int square_index(int rank, int file)
@@ -21,3 +22,4 @@ void print_bitboard(uint64_t bitboard)
         std::cout << "\n";
     }
 }
+
