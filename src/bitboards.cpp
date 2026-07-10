@@ -661,6 +661,26 @@ std::vector<Move> generate_all_moves(const BoardState &board, Color color)
     return moves;
 }
 
+std::vector<Move> generate_legal_moves(const BoardState &board, Color color)
+{
+    std::vector<Move> legal_moves;
+    std::vector<Move> pseudo_legal = generate_all_moves(board, color);
+
+    for (const Move &move : pseudo_legal)
+    {
+        BoardState hypothetical = apply_move(board, move);
+        uint64_t king_square = find_king_square(hypothetical, color);
+        Color enemy_color = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+
+        if (!is_square_attacked(hypothetical, king_square, enemy_color))
+        {
+            legal_moves.push_back(move);
+        }
+    }
+
+    return legal_moves;
+}
+
 bool is_square_attacked(const BoardState &board, int square, Color attacking_color)
 
 {
@@ -915,6 +935,22 @@ BoardState apply_move(const BoardState &board, const Move &move)
         new_board.bitboards[piece_index(enemy_color, PieceType::PAWN)] &= ~(1ULL << captured_square);
     }
 
+    if (moving_piece == PieceType::KING)
+    {
+        if (moving_color == Color::WHITE)
+            new_board.castling_rights &= ~(CASTLE_WK | CASTLE_WQ);
+        else
+            new_board.castling_rights &= ~(CASTLE_BK | CASTLE_BQ);
+    }
+    if (move.from == square_index(0, 0) || move.to == square_index(0, 0))
+        new_board.castling_rights &= ~CASTLE_WQ;
+    if (move.from == square_index(0, 7) || move.to == square_index(0, 7))
+        new_board.castling_rights &= ~CASTLE_WK;
+    if (move.from == square_index(7, 0) || move.to == square_index(7, 0))
+        new_board.castling_rights &= ~CASTLE_BQ;
+    if (move.from == square_index(7, 7) || move.to == square_index(7, 7))
+        new_board.castling_rights &= ~CASTLE_BK;
+
     // metadata updates — apply regardless of move type, come back to these
     if (moving_color == Color::BLACK)
     {
@@ -933,4 +969,15 @@ BoardState apply_move(const BoardState &board, const Move &move)
     }
 
     return new_board;
+}
+
+int find_king_square(const BoardState &board, Color color)
+{
+    uint64_t king_bb = board.bitboards[piece_index(color, PieceType::KING)];
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((king_bb >> square) & 1)
+            return square;
+    }
+    return -1; // shouldn't happen in a legal position — every side always has a king
 }

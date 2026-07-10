@@ -44,6 +44,8 @@ void print_board(const BoardState &board);
 
 PieceType piece_at(const BoardState& board, int square, Color color);
 
+int find_king_square(const BoardState& board, Color color);
+
 // Generate knight attacks.
 uint64_t knight_attacks(int square);
 
@@ -72,5 +74,7 @@ std::vector<Move> generate_queen_moves(const BoardState &board, int from_square,
 std::vector<Move> generate_castle_moves(const BoardState &board, Color color);
 
 std::vector<Move> generate_all_moves(const BoardState &board, Color color);
+
+std::vector<Move> generate_legal_moves(const BoardState &board, Color color);
 
 BoardState apply_move(const BoardState& board, const Move& move);
