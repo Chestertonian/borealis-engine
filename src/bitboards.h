@@ -28,6 +28,9 @@ BoardState starting_position();
 // Converts to the bitboard to which it belongs.
 int piece_index(Color color, PieceType type);
 
+// Checks if a square is attacked.
+bool is_square_attacked(const BoardState& board, int square, Color attacking_color);
+
 // Generate bitboards to show piece occupancy (useful for move generation!)
 uint64_t white_occupied(const BoardState &board);
 uint64_t black_occupied(const BoardState &board);
@@ -53,19 +56,13 @@ uint64_t bishop_attacks(int square, uint64_t all_occupied, uint64_t own_occupied
 // Generate queen attacks.
 uint64_t queen_attacks(int square, uint64_t all_occupied, uint64_t own_occupied);
 
+// All of these compile the sets of moves generated.
 std::vector<Move> generate_knight_moves(const BoardState &board, int from_square, Color color);
 std::vector<Move> generate_bishop_moves(const BoardState &board, int from_square, Color color);
 std::vector<Move> generate_pawn_moves(const BoardState &board, int from_square, Color color);
 std::vector<Move> generate_king_moves(const BoardState &board, int from_square, Color color);
 std::vector<Move> generate_rook_moves(const BoardState &board, int from_square, Color color);
 std::vector<Move> generate_queen_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_castle_moves(const BoardState &board, Color color);
 
 std::vector<Move> generate_all_moves(const BoardState &board, Color color);
-
-// test functions.
-void test_knight_attacks();
-void test_king_attacks();
-void test_pawn_attacks();
-void test_rook_attacks();
-void test_bishop_attacks();
-void test_queen_attacks();

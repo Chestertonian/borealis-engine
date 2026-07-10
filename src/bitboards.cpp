@@ -26,6 +26,12 @@ const int bishop_directions[4][2] = {
 const int queen_directions[8][2] = {
     {1, 1}, {1, 0}, {1, -1}, {0, -1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
 
+// castling rights bit masks
+const uint8_t CASTLE_WK = 1;
+const uint8_t CASTLE_WQ = 1 << 1;
+const uint8_t CASTLE_BK = 1 << 2;
+const uint8_t CASTLE_BQ = 1 << 3;
+
 const std::array<PieceDisplay, 12> piece_displays = {{{Color::WHITE, PieceType::PAWN, 'P'},
                                                       {Color::WHITE, PieceType::KNIGHT, 'N'},
                                                       {Color::WHITE, PieceType::BISHOP, 'B'},
@@ -503,6 +509,75 @@ std::vector<Move> generate_queen_moves(const BoardState &board, int from_square,
     return moves;
 }
 
+std::vector<Move> generate_castle_moves(const BoardState &board, Color color)
+{
+    if (board.castling_rights & CASTLE_WK)
+    {
+        bool path_empty = !((all_occupied(board) >> square_index(0, 5)) & 1)     // f1
+                          && !((all_occupied(board) >> square_index(0, 6)) & 1); // g1
+
+        bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
+                                 && !is_square_attacked(board, square_index(0, 5), Color::BLACK)  // f1
+                                 && !is_square_attacked(board, square_index(0, 6), Color::BLACK); // g1
+
+        if (path_empty && not_through_check)
+        {
+            Move castle{square_index(0, 4), square_index(0, 6), MoveType::CastleKingside, PieceType::NONE};
+            moves.push_back(castle);
+        }
+    }
+
+    if (board.castling_rights & CASTLE_WQ)
+    {
+        bool path_empty = !((all_occupied(board) >> square_index(0, 3)) & 1)     // d1
+                          && !((all_occupied(board) >> square_index(0, 2)) & 1)  // c1
+                          && !((all_occupied(board) >> square_index(0, 1)) & 1); // b1
+
+        bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
+                                 && !is_square_attacked(board, square_index(0, 3), Color::BLACK)  // d1
+                                 && !is_square_attacked(board, square_index(0, 2), Color::BLACK); // c1
+
+        if (path_empty && not_through_check)
+        {
+            Move castle{square_index(0, 4), square_index(0, 2), MoveType::CastleQueenside, PieceType::NONE};
+            moves.push_back(castle);
+        }
+    }
+
+    if (board.castling_rights & CASTLE_BK) 
+    {
+        bool path_empty = !((all_occupied(board) >> square_index(7, 5)) & 1)     // f8
+                          && !((all_occupied(board) >> square_index(7, 6)) & 1); // g8
+
+        bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
+                                 && !is_square_attacked(board, square_index(7, 5), Color::WHITE)  // f8
+                                 && !is_square_attacked(board, square_index(7, 6), Color::WHITE); // g8
+
+        if (path_empty && not_through_check)
+        {
+            Move castle{square_index(7, 4), square_index(7, 6), MoveType::CastleKingside, PieceType::NONE};
+            moves.push_back(castle);
+        }
+    }
+
+    if (board.castling_rights & CASTLE_BQ)
+    {
+        bool path_empty = !((all_occupied(board) >> square_index(7, 3)) & 1)     // d8
+                          && !((all_occupied(board) >> square_index(7, 2)) & 1)  // c8
+                          && !((all_occupied(board) >> square_index(7, 1)) & 1); // b8
+
+        bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
+                                 && !is_square_attacked(board, square_index(7, 3), Color::WHITE)  // d8
+                                 && !is_square_attacked(board, square_index(7, 2), Color::WHITE); // c8
+
+        if (path_empty && not_through_check)
+        {
+            Move castle{square_index(7, 4), square_index(7, 2), MoveType::CastleQueenside, PieceType::NONE};
+            moves.push_back(castle);
+        }
+    }
+}
+
 std::vector<Move> generate_all_moves(const BoardState &board, Color color)
 {
     std::vector<Move> moves;
@@ -574,4 +649,41 @@ std::vector<Move> generate_all_moves(const BoardState &board, Color color)
     }
 
     return moves;
+}
+
+bool is_square_attacked(const BoardState &board, int square, Color attacking_color)
+{
+
+    // KNIGHT
+    uint64_t enemy_knights = board.bitboards[piece_index(attacking_color, PieceType::KNIGHT)];
+    if (knight_attacks(square) & enemy_knights)
+        return true;
+
+    // KING
+    uint64_t enemy_king = board.bitboards[piece_index(attacking_color, PieceType::KING)];
+    if (king_attacks(square) & enemy_king)
+        return true;
+
+    uint64_t occ = all_occupied(board);
+    uint64_t attacker_occupied = (attacking_color == Color::WHITE)
+                                     ? white_occupied(board)
+                                     : black_occupied(board);
+
+    // ROOK/QUEEN
+    uint64_t enemy_rooks_queens = board.bitboards[piece_index(attacking_color, PieceType::ROOK)] | board.bitboards[piece_index(attacking_color, PieceType::QUEEN)];
+    if (rook_attacks(square, occ, attacker_occupied) & enemy_rooks_queens)
+        return true;
+
+    // BISHOP/QUEEN
+    uint64_t enemy_bishops_queens = board.bitboards[piece_index(attacking_color, PieceType::BISHOP)] | board.bitboards[piece_index(attacking_color, PieceType::QUEEN)];
+    if (bishop_attacks(square, occ, attacker_occupied) & enemy_bishops_queens)
+        return true;
+
+    // PAWN
+    Color opposite = (attacking_color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+    uint64_t enemy_pawns = board.bitboards[piece_index(attacking_color, PieceType::PAWN)];
+    if (pawn_attacks(square, opposite) & enemy_pawns)
+        return true;
+
+    return false;
 }
