@@ -1,9 +1,9 @@
-#ifndef MOVE_H
-#define MOVE_H
+#pragma once
 
-#include <string>
 
-enum class PieceType { None, Pawn, Knight, Bishop, Rook, Queen, King };
+enum class PieceType { NONE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
+
+enum class Color { WHITE, BLACK };
 
 enum class MoveType {
     Normal,
@@ -20,7 +20,3 @@ struct Move {
     MoveType type;
     PieceType promotion_piece;
 };
-
-void print_move(const Move& move);
-
-#endif

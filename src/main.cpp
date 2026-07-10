@@ -5,13 +5,16 @@
 
 int main()
 {
-    BoardState state=starting_position();
-    for (int board = 0; board < 12; board++) {
-        print_bitboard(state.bitboards[board]);
-        std::cout << "\n";
-    }
+    // BoardState state=starting_position();
+    // for (int board = 0; board < 12; board++) {
+        // print_bitboard(state.bitboards[board]);
+    //     std::cout << "Bitboard #" << board << " loaded.\n";
+    // std::cout << "\n";
+    // }
 
-    print_board(state);
+    test_queen_attacks();
+
+    // print_board(state);
     return 0;
     // play_game(); // return later
 }
