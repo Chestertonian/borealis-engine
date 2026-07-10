@@ -328,80 +328,150 @@ std::vector<Move> generate_knight_moves(const BoardState& board, int from_square
     return moves;
 }
 
-void test_knight_attacks()
-{
-    std::cout << "Knight on a1:\n";
-    print_bitboard(knight_attacks(square_index(0, 0))); // expect 2 bits
+std::vector<Move> generate_king_moves(const BoardState& board, int from_square, Color color) {
+    std::vector<Move> moves;
 
-    std::cout << "Knight on d4:\n";
-    print_bitboard(knight_attacks(square_index(3, 3))); // expect 8 bits
+    uint64_t attacks = king_attacks(from_square);
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+
+    for (int target_square = 0; target_square < 64; ++target_square) {
+        if ((attacks >> target_square) & 1) {
+            if (!((own_pieces >> target_square) & 1)) {
+                Move move{from_square, target_square};
+                moves.push_back(move);
+            }
+        }
+    }
+
+    return moves;
 }
 
-void test_king_attacks()
-{
-    std::cout << "King on a1:\n";
-    print_bitboard(king_attacks(square_index(0, 0))); // expect 3 bits
+std::vector<Move> generate_pawn_moves(const BoardState& board, int from_square, Color color) {
+    std::vector<Move> moves;
 
-    std::cout << "King on d4:\n";
-    print_bitboard(king_attacks(square_index(3, 3))); // expect 8 bits
+    uint64_t attacks = pawn_attacks(from_square, color);
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+
+    for (int target_square = 0; target_square < 64; ++target_square) {
+        if ((attacks >> target_square) & 1) {
+            if (!((own_pieces >> target_square) & 1)) {
+                Move move{from_square, target_square};
+                moves.push_back(move);
+            }
+        }
+    }
+
+    return moves;
 }
 
-void test_pawn_attacks()
-{
-    std::cout << "Pawn on a2:\n";
-    print_bitboard(pawn_attacks(square_index(1, 0), Color::WHITE)); // expect 1 bit
+std::vector<Move> generate_rook_moves(const BoardState& board, int from_square, Color color) {
+    std::vector<Move> moves;
 
-    std::cout << "Pawn on d4:\n";
-    print_bitboard(pawn_attacks(square_index(3, 3), Color::BLACK)); // expect 2 bits
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+    uint64_t attacks = rook_attacks(from_square, occupied, own_pieces);
+
+    for (int target_square = 0; target_square < 64; ++target_square) {
+        if ((attacks >> target_square) & 1) {
+            if (!((own_pieces >> target_square) & 1)) {
+                Move move{from_square, target_square};
+                moves.push_back(move);
+            }
+        }
+    }
+
+    return moves;
 }
 
-void test_rook_attacks()
-{
-    std::cout << "Rook on d4, no blockers:\n";
-    print_bitboard(rook_attacks(square_index(3, 3), 0ULL, 0ULL));
+std::vector<Move> generate_bishop_moves(const BoardState& board, int from_square, Color color) {
+    std::vector<Move> moves;
 
-    uint64_t blocker_d6 = 1ULL << square_index(5, 3);
-    uint64_t blocker_d2 = 1ULL << square_index(1, 3);
-    uint64_t own = blocker_d6;
-    uint64_t all = blocker_d6 | blocker_d2;
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+    uint64_t attacks = bishop_attacks(from_square, occupied, own_pieces);
 
-    std::cout << "Rook on d4, friendly blocker d6, enemy blocker d2:\n";
-    print_bitboard(rook_attacks(square_index(3, 3), all, own));
+    for (int target_square = 0; target_square < 64; ++target_square) {
+        if ((attacks >> target_square) & 1) {
+            if (!((own_pieces >> target_square) & 1)) {
+                Move move{from_square, target_square};
+                moves.push_back(move);
+            }
+        }  
+    }
 
-    std::cout << "Rook on a1, no blockers:\n";
-    print_bitboard(rook_attacks(square_index(0, 0), 0ULL, 0ULL));
+    return moves;
 }
 
-void test_bishop_attacks()
-{
-    std::cout << "Bishop on d4, no blockers:\n";
-    print_bitboard(bishop_attacks(square_index(3, 3), 0ULL, 0ULL));
+std::vector<Move> generate_queen_moves(const BoardState& board, int from_square, Color color) {
+    std::vector<Move> moves;
 
-    uint64_t blocker_e5 = 1ULL << square_index(4, 4);
-    uint64_t blocker_b6 = 1ULL << square_index(5, 1);
-    uint64_t own = blocker_e5;
-    uint64_t all = blocker_e5 | blocker_b6;
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+    uint64_t attacks = queen_attacks(from_square, occupied, own_pieces);
 
-    std::cout << "Bishop on d4, friendly blocker e5, enemy blocker b6:\n";
-    print_bitboard(bishop_attacks(square_index(3, 3), all, own));
+    for (int target_square = 0; target_square < 64; ++target_square) {
+        if ((attacks >> target_square) & 1) {
+            if (!((own_pieces >> target_square) & 1)) {
+                Move move{from_square, target_square};
+                moves.push_back(move);
+            }
+        }
+    }
 
-    std::cout << "Bishop on a1, no blockers:\n";
-    print_bitboard(bishop_attacks(square_index(0, 0), 0ULL, 0ULL));
+    return moves;
 }
 
-void test_queen_attacks()
-{
-    std::cout << "Queen on d4, no blockers:\n";
-    print_bitboard(queen_attacks(square_index(3, 3), 0ULL, 0ULL));
+std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
+    std::vector<Move> moves;
 
-    uint64_t blocker_d5 = 1ULL << square_index(4, 3);
-    uint64_t blocker_b6 = 1ULL << square_index(5, 1);
-    uint64_t own = blocker_d5;
-    uint64_t all = blocker_d5 | blocker_b6;
+    // KNIGHT
+    uint64_t knights = board.bitboards[piece_index(color, PieceType::KNIGHT)];
+    for (int square = 0; square < 64; ++square) {
+        if ((knights >> square) & 1) {
+            std::vector<Move> piece_moves = generate_knight_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
 
-    std::cout << "Queen on d4, friendly blocker d5, enemy blocker b6:\n";
-    print_bitboard(queen_attacks(square_index(3, 3), all, own));
+    // KING
+    uint64_t kings = board.bitboards[piece_index(color, PieceType::KING)];
+    for (int square = 0; square < 64; ++square) {
+        if ((kings >> square) & 1) {
+            std::vector<Move> piece_moves = generate_king_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
 
-    std::cout << "Queen on a1, no blockers:\n";
-    print_bitboard(queen_attacks(square_index(0, 0), 0ULL, 0ULL));
+    // ROOK
+    uint64_t rooks = board.bitboards[piece_index(color, PieceType::ROOK)];
+    for (int square = 0; square < 64; ++square) {
+        if ((rooks >> square) & 1) {
+            std::vector<Move> piece_moves = generate_rook_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
+
+    // BISHOP
+    uint64_t bishops = board.bitboards[piece_index(color, PieceType::BISHOP)];
+    for (int square = 0; square < 64; ++square) {
+        if ((bishops >> square) & 1) {
+            std::vector<Move> piece_moves = generate_bishop_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
+
+    // QUEEN
+    uint64_t queens = board.bitboards[piece_index(color, PieceType::QUEEN)];
+    for (int square = 0; square < 64; ++square) {
+        if ((queens >> square) & 1) {
+            std::vector<Move> piece_moves = generate_queen_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
+
+    // PAWN — deferred
+
+    return moves;
 }
