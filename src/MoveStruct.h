@@ -1,11 +1,24 @@
 #pragma once
 
+enum class PieceType
+{
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING,
+    NONE
+};
 
-enum class PieceType { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
+enum class Color
+{
+    WHITE,
+    BLACK
+};
 
-enum class Color { WHITE, BLACK };
-
-enum class MoveType {
+enum class MoveType
+{
     Normal,
     DoublePawnPush,
     EnPassant,
@@ -14,7 +27,8 @@ enum class MoveType {
     Promotion
 };
 
-struct Move {
+struct Move
+{
     int from;
     int to;
     MoveType type;

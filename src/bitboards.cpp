@@ -1,5 +1,7 @@
 #include <cstdint>
 #include <array>
+#include <sstream>
+#include <string>
 #include "bitboard_utils.h"
 #include "bitboards.h"
 #include "MoveStruct.h"
@@ -511,6 +513,8 @@ std::vector<Move> generate_queen_moves(const BoardState &board, int from_square,
 
 std::vector<Move> generate_castle_moves(const BoardState &board, Color color)
 {
+    std::vector<Move> moves;
+
     if (board.castling_rights & CASTLE_WK)
     {
         bool path_empty = !((all_occupied(board) >> square_index(0, 5)) & 1)     // f1
@@ -544,7 +548,7 @@ std::vector<Move> generate_castle_moves(const BoardState &board, Color color)
         }
     }
 
-    if (board.castling_rights & CASTLE_BK) 
+    if (board.castling_rights & CASTLE_BK)
     {
         bool path_empty = !((all_occupied(board) >> square_index(7, 5)) & 1)     // f8
                           && !((all_occupied(board) >> square_index(7, 6)) & 1); // g8
@@ -576,6 +580,8 @@ std::vector<Move> generate_castle_moves(const BoardState &board, Color color)
             moves.push_back(castle);
         }
     }
+
+    return moves;
 }
 
 std::vector<Move> generate_all_moves(const BoardState &board, Color color)
@@ -648,10 +654,15 @@ std::vector<Move> generate_all_moves(const BoardState &board, Color color)
         }
     }
 
+    // CASTLING
+    std::vector<Move> castle_moves = generate_castle_moves(board, color);
+    moves.insert(moves.end(), castle_moves.begin(), castle_moves.end());
+
     return moves;
 }
 
 bool is_square_attacked(const BoardState &board, int square, Color attacking_color)
+
 {
 
     // KNIGHT
@@ -671,12 +682,12 @@ bool is_square_attacked(const BoardState &board, int square, Color attacking_col
 
     // ROOK/QUEEN
     uint64_t enemy_rooks_queens = board.bitboards[piece_index(attacking_color, PieceType::ROOK)] | board.bitboards[piece_index(attacking_color, PieceType::QUEEN)];
-    if (rook_attacks(square, occ, attacker_occupied) & enemy_rooks_queens)
+    if (rook_attacks(square, occ, 0ULL) & enemy_rooks_queens)
         return true;
 
     // BISHOP/QUEEN
     uint64_t enemy_bishops_queens = board.bitboards[piece_index(attacking_color, PieceType::BISHOP)] | board.bitboards[piece_index(attacking_color, PieceType::QUEEN)];
-    if (bishop_attacks(square, occ, attacker_occupied) & enemy_bishops_queens)
+    if (bishop_attacks(square, occ, 0ULL) & enemy_bishops_queens)
         return true;
 
     // PAWN
@@ -686,4 +697,240 @@ bool is_square_attacked(const BoardState &board, int square, Color attacking_col
         return true;
 
     return false;
+}
+
+int algebraic_to_square(const std::string &algebraic)
+{
+    int file = algebraic[0] - 'a';
+    int rank = algebraic[1] - '1';
+    return square_index(rank, file);
+}
+
+PieceType char_to_piece_type(char c)
+{
+    switch (std::tolower(c))
+    {
+    case 'p':
+        return PieceType::PAWN;
+    case 'n':
+        return PieceType::KNIGHT;
+    case 'b':
+        return PieceType::BISHOP;
+    case 'r':
+        return PieceType::ROOK;
+    case 'q':
+        return PieceType::QUEEN;
+    case 'k':
+        return PieceType::KING;
+    default:
+        return PieceType::NONE;
+    }
+}
+
+BoardState load_fen(const std::string &fen)
+{
+
+    BoardState board;
+    board.bitboards.fill(0ULL);
+
+    std::istringstream iss(fen);
+    std::string placement, side_to_move_str, castling_str, en_passant_str;
+    int halfmove, fullmove;
+    iss >> placement >> side_to_move_str >> castling_str >> en_passant_str >> halfmove >> fullmove;
+
+    // Field 1: piece placement
+    int rank = 7, file = 0;
+    for (char c : placement)
+    {
+        if (c == '/')
+        {
+            rank -= 1;
+            file = 0;
+        }
+        else if (std::isdigit(c))
+        {
+            file += (c - '0');
+        }
+        else
+        {
+            Color color = std::isupper(c) ? Color::WHITE : Color::BLACK;
+            PieceType type = char_to_piece_type(c);
+            int square = square_index(rank, file);
+            board.bitboards[piece_index(color, type)] |= (1ULL << square);
+            file += 1;
+        }
+    }
+
+    // Field 2: side to move
+    board.side_to_move = (side_to_move_str == "w") ? Color::WHITE : Color::BLACK;
+
+    // Field 3: castling rights
+    board.castling_rights = 0;
+    if (castling_str != "-")
+    {
+        for (char c : castling_str)
+        {
+            if (c == 'K')
+                board.castling_rights |= CASTLE_WK;
+            if (c == 'Q')
+                board.castling_rights |= CASTLE_WQ;
+            if (c == 'k')
+                board.castling_rights |= CASTLE_BK;
+            if (c == 'q')
+                board.castling_rights |= CASTLE_BQ;
+        }
+    }
+
+    // Field 4: en passant square
+    board.en_passant_square = (en_passant_str == "-") ? -1 : algebraic_to_square(en_passant_str);
+
+    // Fields 5-6: clocks
+    board.halfmove_clock = halfmove;
+    board.fullmove_number = fullmove;
+
+    return board;
+}
+
+PieceType piece_at(const BoardState &board, int square, Color color)
+{
+    for (int t = 0; t < 6; ++t)
+    {
+        PieceType type = static_cast<PieceType>(t);
+        if ((board.bitboards[piece_index(color, type)] >> square) & 1)
+        {
+            return type;
+        }
+    }
+    return PieceType::NONE;
+}
+
+BoardState apply_move(const BoardState &board, const Move &move)
+{
+    BoardState new_board = board;
+
+    Color moving_color = board.side_to_move;
+    Color enemy_color = (moving_color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+
+    PieceType moving_piece = piece_at(board, move.from, moving_color);
+    PieceType captured_piece = piece_at(board, move.to, enemy_color);
+
+    if (move.type == MoveType::Normal)
+    {
+
+        // clear from-square, set to-square for the moving piece
+        new_board.bitboards[piece_index(moving_color, moving_piece)] &= ~(1ULL << move.from);
+        new_board.bitboards[piece_index(moving_color, moving_piece)] |= (1ULL << move.to);
+
+        if (captured_piece != PieceType::NONE)
+        {
+            new_board.bitboards[piece_index(enemy_color, captured_piece)] &= ~(1ULL << move.to);
+        }
+        new_board.en_passant_square = -1;
+    }
+
+    if (move.type == MoveType::DoublePawnPush)
+    {
+        int direction = (moving_color == Color::WHITE) ? 1 : -1;
+        int intermediate_square = move.from + (8 * direction);
+
+        // clear from-square, set to-square for the moving piece
+        new_board.bitboards[piece_index(moving_color, moving_piece)] &= ~(1ULL << move.from);
+        new_board.bitboards[piece_index(moving_color, moving_piece)] |= (1ULL << move.to);
+
+        if (captured_piece != PieceType::NONE)
+        {
+            new_board.bitboards[piece_index(enemy_color, captured_piece)] &= ~(1ULL << move.to);
+        }
+        new_board.en_passant_square = intermediate_square;
+    }
+
+    if (move.type == MoveType::Promotion)
+    {
+        // clear the pawn from its origin square
+        new_board.bitboards[piece_index(moving_color, PieceType::PAWN)] &= ~(1ULL << move.from);
+
+        // set the PROMOTED piece at the destination — not the pawn
+        new_board.bitboards[piece_index(moving_color, move.promotion_piece)] |= (1ULL << move.to);
+
+        // handle a possible capture on the destination square, same as Normal
+        PieceType captured_piece = piece_at(board, move.to, enemy_color);
+        if (captured_piece != PieceType::NONE)
+        {
+            new_board.bitboards[piece_index(enemy_color, captured_piece)] &= ~(1ULL << move.to);
+        }
+        new_board.en_passant_square = -1;
+    }
+
+    if (move.type == MoveType::CastleKingside)
+    {
+        // king: e -> g (file 4 -> file 6, same rank)
+        new_board.bitboards[piece_index(moving_color, PieceType::KING)] &= ~(1ULL << move.from);
+        new_board.bitboards[piece_index(moving_color, PieceType::KING)] |= (1ULL << move.to);
+
+        // rook: h -> f (file 7 -> file 5, same rank)
+        int rook_rank = (moving_color == Color::WHITE) ? 0 : 7;
+        int rook_from = square_index(rook_rank, 7);
+        int rook_to = square_index(rook_rank, 5);
+        new_board.bitboards[piece_index(moving_color, PieceType::ROOK)] &= ~(1ULL << rook_from);
+        new_board.bitboards[piece_index(moving_color, PieceType::ROOK)] |= (1ULL << rook_to);
+        new_board.en_passant_square = -1;
+        if (moving_color == Color::WHITE)
+            new_board.castling_rights &= ~(CASTLE_WK | CASTLE_WQ);
+        else
+            new_board.castling_rights &= ~(CASTLE_BK | CASTLE_BQ);
+    }
+
+    if (move.type == MoveType::CastleQueenside)
+    {
+        // king: e -> c (file 4 -> file 2, same rank)
+        new_board.bitboards[piece_index(moving_color, PieceType::KING)] &= ~(1ULL << move.from);
+        new_board.bitboards[piece_index(moving_color, PieceType::KING)] |= (1ULL << move.to);
+
+        // rook: a -> d (file 0 -> file 3, same rank)
+        int rook_rank = (moving_color == Color::WHITE) ? 0 : 7;
+        int rook_from = square_index(rook_rank, 0);
+        int rook_to = square_index(rook_rank, 3);
+        new_board.bitboards[piece_index(moving_color, PieceType::ROOK)] &= ~(1ULL << rook_from);
+        new_board.bitboards[piece_index(moving_color, PieceType::ROOK)] |= (1ULL << rook_to);
+
+        new_board.en_passant_square = -1;
+        if (moving_color == Color::WHITE)
+            new_board.castling_rights &= ~(CASTLE_WK | CASTLE_WQ);
+        else
+            new_board.castling_rights &= ~(CASTLE_BK | CASTLE_BQ);
+    }
+
+    if (move.type == MoveType::EnPassant)
+    {
+        PieceType moving_piece = PieceType::PAWN; // always a pawn, same reasoning as promotion
+
+        // move the capturing pawn normally
+        new_board.bitboards[piece_index(moving_color, PieceType::PAWN)] &= ~(1ULL << move.from);
+        new_board.bitboards[piece_index(moving_color, PieceType::PAWN)] |= (1ULL << move.to);
+
+        // the captured pawn is one rank behind `to`, NOT on `to` itself
+        int direction = (moving_color == Color::WHITE) ? 1 : -1;
+        int captured_square = move.to - (8 * direction);
+
+        new_board.bitboards[piece_index(enemy_color, PieceType::PAWN)] &= ~(1ULL << captured_square);
+    }
+
+    // metadata updates — apply regardless of move type, come back to these
+    if (moving_color == Color::BLACK)
+    {
+        new_board.fullmove_number = board.fullmove_number + 1;
+    }
+    new_board.side_to_move = enemy_color;
+
+    // 50 move rule enforcement.
+    if (moving_piece == PieceType::PAWN || captured_piece != PieceType::NONE)
+    {
+        new_board.halfmove_clock = 0;
+    }
+    else
+    {
+        new_board.halfmove_clock = board.halfmove_clock + 1;
+    }
+
+    return new_board;
 }

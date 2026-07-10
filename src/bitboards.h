@@ -25,11 +25,15 @@ struct BoardState
 // Returns a BoardState set up for the starting position
 BoardState starting_position();
 
+// FEN loading
+int algebraic_to_square(const std::string& algebraic);
+BoardState load_fen(const std::string& fen);
+
 // Converts to the bitboard to which it belongs.
 int piece_index(Color color, PieceType type);
 
 // Checks if a square is attacked.
-bool is_square_attacked(const BoardState& board, int square, Color attacking_color);
+bool is_square_attacked(const BoardState &board, int square, Color attacking_color);
 
 // Generate bitboards to show piece occupancy (useful for move generation!)
 uint64_t white_occupied(const BoardState &board);
@@ -37,6 +41,8 @@ uint64_t black_occupied(const BoardState &board);
 uint64_t all_occupied(const BoardState &board);
 
 void print_board(const BoardState &board);
+
+PieceType piece_at(const BoardState& board, int square, Color color);
 
 // Generate knight attacks.
 uint64_t knight_attacks(int square);
@@ -66,3 +72,5 @@ std::vector<Move> generate_queen_moves(const BoardState &board, int from_square,
 std::vector<Move> generate_castle_moves(const BoardState &board, Color color);
 
 std::vector<Move> generate_all_moves(const BoardState &board, Color color);
+
+BoardState apply_move(const BoardState& board, const Move& move);
