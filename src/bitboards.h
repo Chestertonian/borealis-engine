@@ -7,17 +7,17 @@
 #include <vector>
 #include "MoveStruct.h"
 
-
 // Index into a 12-element bitboard array: 0-5 = white pieces, 6-11 = black,
-// ordered PAWN..KING within each color. 
+// ordered PAWN..KING within each color.
 int piece_index(Color color, PieceType type);
 
-struct BoardState {
+struct BoardState
+{
     std::array<uint64_t, 12> bitboards{}; // one bit per square, per piece type/color
 
     Color side_to_move;
-    uint8_t castling_rights;   // 4 bits used: WK, WQ, BK, BQ
-    int en_passant_square;     // -1 if none
+    uint8_t castling_rights; // 4 bits used: WK, WQ, BK, BQ
+    int en_passant_square;   // -1 if none
     int halfmove_clock;
     int fullmove_number;
 };
@@ -29,11 +29,11 @@ BoardState starting_position();
 int piece_index(Color color, PieceType type);
 
 // Generate bitboards to show piece occupancy (useful for move generation!)
-uint64_t white_occupied(const BoardState& board);
-uint64_t black_occupied(const BoardState& board);
-uint64_t all_occupied(const BoardState& board);
+uint64_t white_occupied(const BoardState &board);
+uint64_t black_occupied(const BoardState &board);
+uint64_t all_occupied(const BoardState &board);
 
-void print_board(const BoardState& board);
+void print_board(const BoardState &board);
 
 // Generate knight attacks.
 uint64_t knight_attacks(int square);
@@ -53,7 +53,14 @@ uint64_t bishop_attacks(int square, uint64_t all_occupied, uint64_t own_occupied
 // Generate queen attacks.
 uint64_t queen_attacks(int square, uint64_t all_occupied, uint64_t own_occupied);
 
-std::vector<Move> generate_knight_moves(const BoardState& board, int from_square, Color color);
+std::vector<Move> generate_knight_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_bishop_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_pawn_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_king_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_rook_moves(const BoardState &board, int from_square, Color color);
+std::vector<Move> generate_queen_moves(const BoardState &board, int from_square, Color color);
+
+std::vector<Move> generate_all_moves(const BoardState &board, Color color);
 
 // test functions.
 void test_knight_attacks();

@@ -21,5 +21,13 @@ void print_bitboard(uint64_t bitboard)
         }
         std::cout << "\n";
     }
+    std::cout << "\n";
 }
 
+std::string square_to_algebraic(int square) {
+    int rank = square / 8;
+    int file = square % 8;
+    char file_char = 'a' + file;
+    char rank_char = '1' + rank;
+    return std::string(1, file_char) + std::string(1, rank_char);
+}

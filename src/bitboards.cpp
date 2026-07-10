@@ -309,17 +309,21 @@ uint64_t queen_attacks(int square, uint64_t all_occupied, uint64_t own_occupied)
     return attacks;
 }
 
-std::vector<Move> generate_knight_moves(const BoardState& board, int from_square, Color color) {
+std::vector<Move> generate_knight_moves(const BoardState &board, int from_square, Color color)
+{
     std::vector<Move> moves;
 
     uint64_t attacks = knight_attacks(from_square);
     uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
     uint64_t occupied = all_occupied(board);
 
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (!((own_pieces >> target_square) & 1))
+            {
+                Move move{from_square, target_square, MoveType::Normal};
                 moves.push_back(move);
             }
         }
@@ -328,17 +332,21 @@ std::vector<Move> generate_knight_moves(const BoardState& board, int from_square
     return moves;
 }
 
-std::vector<Move> generate_king_moves(const BoardState& board, int from_square, Color color) {
+std::vector<Move> generate_king_moves(const BoardState &board, int from_square, Color color)
+{
     std::vector<Move> moves;
 
     uint64_t attacks = king_attacks(from_square);
     uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
     uint64_t occupied = all_occupied(board);
 
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (!((own_pieces >> target_square) & 1))
+            {
+                Move move{from_square, target_square, MoveType::Normal};
                 moves.push_back(move);
             }
         }
@@ -347,18 +355,78 @@ std::vector<Move> generate_king_moves(const BoardState& board, int from_square, 
     return moves;
 }
 
-std::vector<Move> generate_pawn_moves(const BoardState& board, int from_square, Color color) {
+std::vector<Move> generate_pawn_moves(const BoardState &board, int from_square, Color color)
+{
     std::vector<Move> moves;
 
-    uint64_t attacks = pawn_attacks(from_square, color);
+    int starting_rank = (color == Color::WHITE) ? 1 : 6;
+    int promotion_rank = (color == Color::WHITE) ? 7 : 0;
+    int direction = (color == Color::WHITE) ? 1 : -1;
     uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
-    uint64_t occupied = all_occupied(board);
+    uint64_t enemy_pieces = (color == Color::BLACK) ? white_occupied(board) : black_occupied(board);
 
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
-                moves.push_back(move);
+    int push_square = from_square + (8 * direction);
+
+    if (push_square >= 0 && push_square < 64 &&
+        !((all_occupied(board) >> push_square) & 1))
+    {
+        if ((push_square / 8) == promotion_rank)
+        {
+            Move promote_knight{from_square, push_square, MoveType::Promotion, PieceType::KNIGHT};
+            Move promote_bishop{from_square, push_square, MoveType::Promotion, PieceType::BISHOP};
+            Move promote_rook{from_square, push_square, MoveType::Promotion, PieceType::ROOK};
+            Move promote_queen{from_square, push_square, MoveType::Promotion, PieceType::QUEEN};
+            moves.push_back(promote_knight);
+            moves.push_back(promote_bishop);
+            moves.push_back(promote_rook);
+            moves.push_back(promote_queen);
+        }
+
+        else
+        {
+            Move singlepush{from_square, push_square, MoveType::Normal};
+            moves.push_back(singlepush);
+            if ((from_square / 8) == starting_rank)
+            {
+                int double_square = from_square + (16 * direction);
+                if (!((all_occupied(board) >> double_square) & 1))
+                {
+                    Move double_push{from_square, double_square, MoveType::DoublePawnPush};
+                    moves.push_back(double_push);
+                }
+            }
+        }
+    }
+
+    uint64_t attacks = pawn_attacks(from_square, color);
+
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (target_square == board.en_passant_square)
+            {
+                Move en_passant{from_square, target_square, MoveType::EnPassant};
+                moves.push_back(en_passant);
+            }
+            if ((enemy_pieces >> target_square) & 1)
+            {
+                if ((target_square / 8) == promotion_rank)
+                {
+                    Move capture_promote_knight{from_square, target_square, MoveType::Promotion, PieceType::KNIGHT};
+                    Move capture_promote_bishop{from_square, target_square, MoveType::Promotion, PieceType::BISHOP};
+                    Move capture_promote_rook{from_square, target_square, MoveType::Promotion, PieceType::ROOK};
+                    Move capture_promote_queen{from_square, target_square, MoveType::Promotion, PieceType::QUEEN};
+                    moves.push_back(capture_promote_knight);
+                    moves.push_back(capture_promote_bishop);
+                    moves.push_back(capture_promote_rook);
+                    moves.push_back(capture_promote_queen);
+                }
+                else
+                {
+                    Move capture{from_square, target_square, MoveType::Normal};
+                    moves.push_back(capture);
+                }
             }
         }
     }
@@ -366,17 +434,21 @@ std::vector<Move> generate_pawn_moves(const BoardState& board, int from_square, 
     return moves;
 }
 
-std::vector<Move> generate_rook_moves(const BoardState& board, int from_square, Color color) {
+std::vector<Move> generate_rook_moves(const BoardState &board, int from_square, Color color)
+{
     std::vector<Move> moves;
 
     uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
     uint64_t occupied = all_occupied(board);
     uint64_t attacks = rook_attacks(from_square, occupied, own_pieces);
 
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (!((own_pieces >> target_square) & 1))
+            {
+                Move move{from_square, target_square, MoveType::Normal};
                 moves.push_back(move);
             }
         }
@@ -385,36 +457,21 @@ std::vector<Move> generate_rook_moves(const BoardState& board, int from_square, 
     return moves;
 }
 
-std::vector<Move> generate_bishop_moves(const BoardState& board, int from_square, Color color) {
+std::vector<Move> generate_bishop_moves(const BoardState &board, int from_square, Color color)
+{
     std::vector<Move> moves;
 
     uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
     uint64_t occupied = all_occupied(board);
     uint64_t attacks = bishop_attacks(from_square, occupied, own_pieces);
 
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
-                moves.push_back(move);
-            }
-        }  
-    }
-
-    return moves;
-}
-
-std::vector<Move> generate_queen_moves(const BoardState& board, int from_square, Color color) {
-    std::vector<Move> moves;
-
-    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
-    uint64_t occupied = all_occupied(board);
-    uint64_t attacks = queen_attacks(from_square, occupied, own_pieces);
-
-    for (int target_square = 0; target_square < 64; ++target_square) {
-        if ((attacks >> target_square) & 1) {
-            if (!((own_pieces >> target_square) & 1)) {
-                Move move{from_square, target_square};
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (!((own_pieces >> target_square) & 1))
+            {
+                Move move{from_square, target_square, MoveType::Normal};
                 moves.push_back(move);
             }
         }
@@ -423,13 +480,39 @@ std::vector<Move> generate_queen_moves(const BoardState& board, int from_square,
     return moves;
 }
 
-std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
+std::vector<Move> generate_queen_moves(const BoardState &board, int from_square, Color color)
+{
+    std::vector<Move> moves;
+
+    uint64_t own_pieces = (color == Color::WHITE) ? white_occupied(board) : black_occupied(board);
+    uint64_t occupied = all_occupied(board);
+    uint64_t attacks = queen_attacks(from_square, occupied, own_pieces);
+
+    for (int target_square = 0; target_square < 64; ++target_square)
+    {
+        if ((attacks >> target_square) & 1)
+        {
+            if (!((own_pieces >> target_square) & 1))
+            {
+                Move move{from_square, target_square, MoveType::Normal};
+                moves.push_back(move);
+            }
+        }
+    }
+
+    return moves;
+}
+
+std::vector<Move> generate_all_moves(const BoardState &board, Color color)
+{
     std::vector<Move> moves;
 
     // KNIGHT
     uint64_t knights = board.bitboards[piece_index(color, PieceType::KNIGHT)];
-    for (int square = 0; square < 64; ++square) {
-        if ((knights >> square) & 1) {
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((knights >> square) & 1)
+        {
             std::vector<Move> piece_moves = generate_knight_moves(board, square, color);
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
@@ -437,8 +520,10 @@ std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
 
     // KING
     uint64_t kings = board.bitboards[piece_index(color, PieceType::KING)];
-    for (int square = 0; square < 64; ++square) {
-        if ((kings >> square) & 1) {
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((kings >> square) & 1)
+        {
             std::vector<Move> piece_moves = generate_king_moves(board, square, color);
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
@@ -446,8 +531,10 @@ std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
 
     // ROOK
     uint64_t rooks = board.bitboards[piece_index(color, PieceType::ROOK)];
-    for (int square = 0; square < 64; ++square) {
-        if ((rooks >> square) & 1) {
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((rooks >> square) & 1)
+        {
             std::vector<Move> piece_moves = generate_rook_moves(board, square, color);
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
@@ -455,8 +542,10 @@ std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
 
     // BISHOP
     uint64_t bishops = board.bitboards[piece_index(color, PieceType::BISHOP)];
-    for (int square = 0; square < 64; ++square) {
-        if ((bishops >> square) & 1) {
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((bishops >> square) & 1)
+        {
             std::vector<Move> piece_moves = generate_bishop_moves(board, square, color);
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
@@ -464,14 +553,25 @@ std::vector<Move> generate_all_moves(const BoardState& board, Color color) {
 
     // QUEEN
     uint64_t queens = board.bitboards[piece_index(color, PieceType::QUEEN)];
-    for (int square = 0; square < 64; ++square) {
-        if ((queens >> square) & 1) {
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((queens >> square) & 1)
+        {
             std::vector<Move> piece_moves = generate_queen_moves(board, square, color);
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
     }
 
-    // PAWN — deferred
+    // PAWN
+    uint64_t pawns = board.bitboards[piece_index(color, PieceType::PAWN)];
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((pawns >> square) & 1)
+        {
+            std::vector<Move> piece_moves = generate_pawn_moves(board, square, color);
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
 
     return moves;
 }
