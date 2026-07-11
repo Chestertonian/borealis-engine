@@ -141,7 +141,7 @@ void run_game()
 {
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    std::cout << "Welcome to Borealis 0.2 -- Yggdrasil.\nTo make a move, simply type the first coordinate, then the second.\n"; 
+    std::cout << "Welcome to Borealis 0.2 -- Yggdrasil.\nTo make a move, simply type the first coordinate, then the second.\n";
     BoardState board = starting_position();
 
     while (true)
@@ -173,6 +173,12 @@ void run_game()
                 break;
             }
             break;
+        }
+
+        Color enemy = (board.side_to_move == Color::WHITE) ? Color::BLACK : Color::WHITE;
+        if (is_square_attacked(board, find_king_square(board, board.side_to_move), enemy))
+        {
+            std::cout << "King is in check." << "\n";
         }
 
         std::vector<Move> moves = generate_legal_moves(board, board.side_to_move);
