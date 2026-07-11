@@ -129,7 +129,9 @@ void print_board(const BoardState &board)
         }
         std::cout << "\n";
     }
-    std::cout << "  abcdefgh";
+    std::cout << "  abcdefgh" << ".\n\n";
+    std::cout << "Move #" << board.fullmove_number << ".\n";
+    
 }
 
 uint64_t knight_attacks(int square)
@@ -727,8 +729,15 @@ bool is_square_attacked(const BoardState &board, int square, Color attacking_col
 
 int algebraic_to_square(const std::string &algebraic)
 {
+    if (algebraic.size() != 2)
+        return -1;
+
     int file = algebraic[0] - 'a';
     int rank = algebraic[1] - '1';
+
+    if (file < 0 || file > 7 || rank < 0 || rank > 7)
+        return -1;
+
     return square_index(rank, file);
 }
 

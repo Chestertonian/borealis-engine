@@ -83,3 +83,4 @@ long long perft(const BoardState &state, int depth);
 void perft_divide(const BoardState &state, int depth);
 void print_move(const Move &move);
 int count_bits(uint64_t bitboard);
+

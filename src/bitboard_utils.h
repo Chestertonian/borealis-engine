@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "bitboards.h"
 #include <array>
+#include <string>
 
 // Converts a (rank, file) pair to a LERF square index (a1 = 0, h8 = 63).
 // rank: 0-7, where 0 = rank 1
