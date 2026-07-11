@@ -104,7 +104,7 @@ uint64_t black_occupied(const BoardState &board)
 
 uint64_t all_occupied(const BoardState &board)
 {
-    return board.bitboards[piece_index(Color::WHITE, PieceType::PAWN)] | board.bitboards[piece_index(Color::WHITE, PieceType::KNIGHT)] | board.bitboards[piece_index(Color::WHITE, PieceType::BISHOP)] | board.bitboards[piece_index(Color::WHITE, PieceType::ROOK)] | board.bitboards[piece_index(Color::WHITE, PieceType::QUEEN)] | board.bitboards[piece_index(Color::WHITE, PieceType::KING)] | board.bitboards[piece_index(Color::BLACK, PieceType::KNIGHT)] | board.bitboards[piece_index(Color::BLACK, PieceType::BISHOP)] | board.bitboards[piece_index(Color::BLACK, PieceType::ROOK)] | board.bitboards[piece_index(Color::BLACK, PieceType::QUEEN)] | board.bitboards[piece_index(Color::BLACK, PieceType::KING)];
+    return white_occupied(board) | black_occupied(board);
 }
 
 void print_board(const BoardState &board)
@@ -289,7 +289,7 @@ uint64_t queen_attacks(int square, uint64_t all_occupied, uint64_t own_occupied)
     int rank = square / 8;
     int file = square % 8;
 
-    for (int d = 0; d < 4; ++d)
+    for (int d = 0; d < 8; ++d)
     {
         int r = rank;
         int f = file;
@@ -515,69 +515,75 @@ std::vector<Move> generate_castle_moves(const BoardState &board, Color color)
 {
     std::vector<Move> moves;
 
-    if (board.castling_rights & CASTLE_WK)
+    if (color == Color::WHITE)
     {
-        bool path_empty = !((all_occupied(board) >> square_index(0, 5)) & 1)     // f1
-                          && !((all_occupied(board) >> square_index(0, 6)) & 1); // g1
-
-        bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
-                                 && !is_square_attacked(board, square_index(0, 5), Color::BLACK)  // f1
-                                 && !is_square_attacked(board, square_index(0, 6), Color::BLACK); // g1
-
-        if (path_empty && not_through_check)
+        if (board.castling_rights & CASTLE_WK)
         {
-            Move castle{square_index(0, 4), square_index(0, 6), MoveType::CastleKingside, PieceType::NONE};
-            moves.push_back(castle);
+            bool path_empty = !((all_occupied(board) >> square_index(0, 5)) & 1)     // f1
+                              && !((all_occupied(board) >> square_index(0, 6)) & 1); // g1
+
+            bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
+                                     && !is_square_attacked(board, square_index(0, 5), Color::BLACK)  // f1
+                                     && !is_square_attacked(board, square_index(0, 6), Color::BLACK); // g1
+
+            if (path_empty && not_through_check)
+            {
+                Move castle{square_index(0, 4), square_index(0, 6), MoveType::CastleKingside, PieceType::NONE};
+                moves.push_back(castle);
+            }
+        }
+
+        if (board.castling_rights & CASTLE_WQ)
+        {
+            bool path_empty = !((all_occupied(board) >> square_index(0, 3)) & 1)     // d1
+                              && !((all_occupied(board) >> square_index(0, 2)) & 1)  // c1
+                              && !((all_occupied(board) >> square_index(0, 1)) & 1); // b1
+
+            bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
+                                     && !is_square_attacked(board, square_index(0, 3), Color::BLACK)  // d1
+                                     && !is_square_attacked(board, square_index(0, 2), Color::BLACK); // c1
+
+            if (path_empty && not_through_check)
+            {
+                Move castle{square_index(0, 4), square_index(0, 2), MoveType::CastleQueenside, PieceType::NONE};
+                moves.push_back(castle);
+            }
         }
     }
 
-    if (board.castling_rights & CASTLE_WQ)
+    else
     {
-        bool path_empty = !((all_occupied(board) >> square_index(0, 3)) & 1)     // d1
-                          && !((all_occupied(board) >> square_index(0, 2)) & 1)  // c1
-                          && !((all_occupied(board) >> square_index(0, 1)) & 1); // b1
-
-        bool not_through_check = !is_square_attacked(board, square_index(0, 4), Color::BLACK)     // e1
-                                 && !is_square_attacked(board, square_index(0, 3), Color::BLACK)  // d1
-                                 && !is_square_attacked(board, square_index(0, 2), Color::BLACK); // c1
-
-        if (path_empty && not_through_check)
+        if (board.castling_rights & CASTLE_BK)
         {
-            Move castle{square_index(0, 4), square_index(0, 2), MoveType::CastleQueenside, PieceType::NONE};
-            moves.push_back(castle);
+            bool path_empty = !((all_occupied(board) >> square_index(7, 5)) & 1)     // f8
+                              && !((all_occupied(board) >> square_index(7, 6)) & 1); // g8
+
+            bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
+                                     && !is_square_attacked(board, square_index(7, 5), Color::WHITE)  // f8
+                                     && !is_square_attacked(board, square_index(7, 6), Color::WHITE); // g8
+
+            if (path_empty && not_through_check)
+            {
+                Move castle{square_index(7, 4), square_index(7, 6), MoveType::CastleKingside, PieceType::NONE};
+                moves.push_back(castle);
+            }
         }
-    }
 
-    if (board.castling_rights & CASTLE_BK)
-    {
-        bool path_empty = !((all_occupied(board) >> square_index(7, 5)) & 1)     // f8
-                          && !((all_occupied(board) >> square_index(7, 6)) & 1); // g8
-
-        bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
-                                 && !is_square_attacked(board, square_index(7, 5), Color::WHITE)  // f8
-                                 && !is_square_attacked(board, square_index(7, 6), Color::WHITE); // g8
-
-        if (path_empty && not_through_check)
+        if (board.castling_rights & CASTLE_BQ)
         {
-            Move castle{square_index(7, 4), square_index(7, 6), MoveType::CastleKingside, PieceType::NONE};
-            moves.push_back(castle);
-        }
-    }
+            bool path_empty = !((all_occupied(board) >> square_index(7, 3)) & 1)     // d8
+                              && !((all_occupied(board) >> square_index(7, 2)) & 1)  // c8
+                              && !((all_occupied(board) >> square_index(7, 1)) & 1); // b8
 
-    if (board.castling_rights & CASTLE_BQ)
-    {
-        bool path_empty = !((all_occupied(board) >> square_index(7, 3)) & 1)     // d8
-                          && !((all_occupied(board) >> square_index(7, 2)) & 1)  // c8
-                          && !((all_occupied(board) >> square_index(7, 1)) & 1); // b8
+            bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
+                                     && !is_square_attacked(board, square_index(7, 3), Color::WHITE)  // d8
+                                     && !is_square_attacked(board, square_index(7, 2), Color::WHITE); // c8
 
-        bool not_through_check = !is_square_attacked(board, square_index(7, 4), Color::WHITE)     // e8
-                                 && !is_square_attacked(board, square_index(7, 3), Color::WHITE)  // d8
-                                 && !is_square_attacked(board, square_index(7, 2), Color::WHITE); // c8
-
-        if (path_empty && not_through_check)
-        {
-            Move castle{square_index(7, 4), square_index(7, 2), MoveType::CastleQueenside, PieceType::NONE};
-            moves.push_back(castle);
+            if (path_empty && not_through_check)
+            {
+                Move castle{square_index(7, 4), square_index(7, 2), MoveType::CastleQueenside, PieceType::NONE};
+                moves.push_back(castle);
+            }
         }
     }
 
@@ -850,6 +856,7 @@ BoardState apply_move(const BoardState &board, const Move &move)
 
     if (move.type == MoveType::DoublePawnPush)
     {
+        new_board.en_passant_square = -1;
         int direction = (moving_color == Color::WHITE) ? 1 : -1;
         int intermediate_square = move.from + (8 * direction);
 
@@ -857,10 +864,6 @@ BoardState apply_move(const BoardState &board, const Move &move)
         new_board.bitboards[piece_index(moving_color, moving_piece)] &= ~(1ULL << move.from);
         new_board.bitboards[piece_index(moving_color, moving_piece)] |= (1ULL << move.to);
 
-        if (captured_piece != PieceType::NONE)
-        {
-            new_board.bitboards[piece_index(enemy_color, captured_piece)] &= ~(1ULL << move.to);
-        }
         new_board.en_passant_square = intermediate_square;
     }
 
@@ -933,6 +936,8 @@ BoardState apply_move(const BoardState &board, const Move &move)
         int captured_square = move.to - (8 * direction);
 
         new_board.bitboards[piece_index(enemy_color, PieceType::PAWN)] &= ~(1ULL << captured_square);
+
+        new_board.en_passant_square = -1;
     }
 
     if (moving_piece == PieceType::KING)
@@ -980,4 +985,97 @@ int find_king_square(const BoardState &board, Color color)
             return square;
     }
     return -1; // shouldn't happen in a legal position — every side always has a king
+}
+
+long long perft(const BoardState &state, int depth)
+{
+    if (depth == 0)
+    {
+        return 1;
+    }
+
+    std::vector<Move> legal_moves = generate_legal_moves(state, state.side_to_move);
+    long long nodes = 0;
+
+    for (const Move &move : legal_moves)
+    {
+        BoardState next_state = apply_move(state, move);
+        nodes += perft(next_state, depth - 1);
+    }
+
+    return nodes;
+}
+
+void print_move(const Move &move)
+{
+    std::cout << square_to_algebraic(move.from) << " -> " << square_to_algebraic(move.to);
+
+    switch (move.type)
+    {
+    case MoveType::Normal:
+        break; // nothing extra to note
+    case MoveType::DoublePawnPush:
+        std::cout << " (double push)";
+        break;
+    case MoveType::EnPassant:
+        std::cout << " (en passant)";
+        break;
+    case MoveType::CastleKingside:
+        std::cout << " (castle kingside)";
+        break;
+    case MoveType::CastleQueenside:
+        std::cout << " (castle queenside)";
+        break;
+    case MoveType::Promotion:
+        std::cout << " (promotes to ";
+        switch (move.promotion_piece)
+        {
+        case PieceType::KNIGHT:
+            std::cout << "N";
+            break;
+        case PieceType::BISHOP:
+            std::cout << "B";
+            break;
+        case PieceType::ROOK:
+            std::cout << "R";
+            break;
+        case PieceType::QUEEN:
+            std::cout << "Q";
+            break;
+        default:
+            break;
+        }
+        std::cout << ")";
+        break;
+    }
+
+    std::cout << "\n";
+}
+
+void perft_divide(const BoardState &state, int depth)
+{
+    std::vector<Move> legal_moves = generate_legal_moves(state, state.side_to_move);
+    long long total = 0;
+
+    for (const Move &move : legal_moves)
+    {
+        BoardState next_state = apply_move(state, move);
+        long long count = perft(next_state, depth - 1);
+        total += count;
+        print_move(move);
+        std::cout << ": " << count << std::endl;
+    }
+
+    std::cout << "Total: " << total << std::endl;
+}
+
+int count_bits(uint64_t bitboard)
+{
+    int count = 0;
+    for (int square = 0; square < 64; ++square)
+    {
+        if ((bitboard >> square) & 1)
+            count++;
+    }
+    return count;
 }

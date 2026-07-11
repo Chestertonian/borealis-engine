@@ -26,8 +26,8 @@ struct BoardState
 BoardState starting_position();
 
 // FEN loading
-int algebraic_to_square(const std::string& algebraic);
-BoardState load_fen(const std::string& fen);
+int algebraic_to_square(const std::string &algebraic);
+BoardState load_fen(const std::string &fen);
 
 // Converts to the bitboard to which it belongs.
 int piece_index(Color color, PieceType type);
@@ -42,9 +42,9 @@ uint64_t all_occupied(const BoardState &board);
 
 void print_board(const BoardState &board);
 
-PieceType piece_at(const BoardState& board, int square, Color color);
+PieceType piece_at(const BoardState &board, int square, Color color);
 
-int find_king_square(const BoardState& board, Color color);
+int find_king_square(const BoardState &board, Color color);
 
 // Generate knight attacks.
 uint64_t knight_attacks(int square);
@@ -77,4 +77,9 @@ std::vector<Move> generate_all_moves(const BoardState &board, Color color);
 
 std::vector<Move> generate_legal_moves(const BoardState &board, Color color);
 
-BoardState apply_move(const BoardState& board, const Move& move);
+BoardState apply_move(const BoardState &board, const Move &move);
+
+long long perft(const BoardState &state, int depth);
+void perft_divide(const BoardState &state, int depth);
+void print_move(const Move &move);
+int count_bits(uint64_t bitboard);
