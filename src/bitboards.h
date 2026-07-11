@@ -84,3 +84,7 @@ void perft_divide(const BoardState &state, int depth);
 void print_move(const Move &move);
 int count_bits(uint64_t bitboard);
 
+std::string move_to_san(const Move& move, const BoardState& before,
+                         const std::vector<Move>& legal_moves_before,
+                         const BoardState& after,
+                         const std::vector<Move>& legal_moves_after);

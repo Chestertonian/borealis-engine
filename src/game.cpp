@@ -65,6 +65,12 @@ Move get_human_move(const BoardState &board, const std::vector<Move> &legal_move
         std::string input;
         std::cin >> input;
 
+        if (input=="quit")
+        {
+            std::cout << "Quitting...";
+            std::exit(0);
+        }
+
         if (input.length() < 4)
         {
             std::cout << "Invalid format.\n";
@@ -122,8 +128,6 @@ Move get_human_move(const BoardState &board, const std::vector<Move> &legal_move
                 break;
             }
         }
-
-        bool found = false;
         for (const Move &m : matches)
         {
             if (m.promotion_piece == wanted)
@@ -143,6 +147,9 @@ void run_game()
 
     std::cout << "Welcome to Borealis 0.2 -- Yggdrasil.\nTo make a move, simply type the first coordinate, then the second.\n";
     BoardState board = starting_position();
+
+    std::string pgn;
+    int move_number = 1;
 
     while (true)
     {
@@ -172,6 +179,7 @@ void run_game()
             default:
                 break;
             }
+            std::cout << "\nPGN: " << pgn << "\n";
             break;
         }
 
@@ -183,11 +191,27 @@ void run_game()
 
         std::vector<Move> moves = generate_legal_moves(board, board.side_to_move);
 
-        Move chosen = (board.side_to_move == Color::WHITE)
-                          ? get_human_move(board, moves)
+        Color mover_color = board.side_to_move;
+        Move chosen = (mover_color == Color::WHITE)
+                          ? get_human_move(board, moves) // pick_random_move(moves) 
                           : pick_random_move(moves);
 
-        print_move(chosen);
+        BoardState before = board;
         board = apply_move(board, chosen);
+
+        std::vector<Move> legal_moves_after = generate_legal_moves(board, board.side_to_move);
+        std::string san = move_to_san(chosen, before, moves, board, legal_moves_after);
+
+        if (mover_color == Color::WHITE)
+        {
+            pgn += std::to_string(move_number) + ". " + san + " ";
+        }
+        else
+        {
+            pgn += san + " ";
+            move_number++;
+        }
+
+        std::cout << san << "\n";
     }
 }
